@@ -1,0 +1,21 @@
+{
+    "name": "pay360/module-payments",
+    "description": "Magento 2 Payment module from Pay360",
+    "license": "GPL-3.0",
+    "authors": [
+        {
+            "email": "info@mage2gen.com",
+            "name": "Mage2Gen"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Pay360\\Payments\\": ""
+        }
+    }
+}

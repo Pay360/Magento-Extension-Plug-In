@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+	<default>
+		<payment>
+			<pay360>
+				<active>1</active>
+				<model>Pay360\Payments\Model\Payment\Pay360</model>
+				<order_status>pending</order_status>
+				<title>pay360</title>
+				<allowspecific>0</allowspecific>
+				<group>Offline</group>
+			</pay360>
+		</payment>
+		<pay360_standard>
+			<pay360_payment_method>
+				<enabled/>
+			</pay360_payment_method>
+		</pay360_standard>
+	</default>
+</config>
