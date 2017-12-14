@@ -8,16 +8,44 @@
 					<label>Enabled</label>
 					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 				</field>
-				<field id="title" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label" type="text">
+				<field id="payment_type" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="25" translate="label" type="select">
+					<label>Display Type</label>
+					<source_model>Pay360\Payments\Model\Source\PaymentType</source_model>
+				</field>
+				<field id="api_user" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="26" translate="label" type="text">
+					<label>API Username</label>
+				</field>
+				<field id="api_password" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="27" translate="label" type="password">
+					<label>API Password</label>
+				</field>
+				<field id="installation_id" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="28" translate="label" type="text">
+					<label>Installation ID</label>
+				</field>
+				<field id="test" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="29" translate="label" type="select">
+					<label>Test / Debug Mode</label>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+				</field>
+				<field id="payment_action" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="30" translate="label" type="select">
+					<label>Payment Action</label>
+					<source_model>Pay360\Payments\Model\Source\PaymentAction</source_model>
+				</field>
+				<field id="title" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="31" translate="label" type="text">
 					<label>Title</label>
 				</field>
-				<field id="display_type" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="25" translate="label" type="select">
-					<label>Display Type</label>
-					<source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+				<field id="description" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="32" translate="label" type="text">
+					<label>Description</label>
 				</field>
-				<field id="order_status" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="30" translate="label" type="select">
+				<field id="order_status" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="33" translate="label" type="select">
 					<label>New Order Status</label>
-					<source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+					<source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+				</field>
+				<field id="skin_code" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="34" translate="label" type="select">
+					<label>Skin Code</label>
+					<source_model>Pay360\Payments\Model\Source\SkinCodes</source_model>
+				</field>
+				<field id="custom_skin_code" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="35" translate="label" type="text">
+					<label>Custom Skin Code</label>
+					<comment>Custom Skin Code will override skin code selected from the dropdown</comment>
 				</field>
 				<field id="allowspecific" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="40" translate="label" type="allowspecific">
 					<label>Payment from Applicable Countries</label>
