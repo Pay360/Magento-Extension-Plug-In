@@ -6,15 +6,13 @@
 				<active>1</active>
 				<model>Pay360\Payments\Model\Payment\Pay360</model>
 				<order_status>pending</order_status>
-				<title>pay360</title>
+                <payment_type>hpp</payment_type>
+                <description>You will be redirected to Pay360 Website when you place an order.</description>
+                <payment_action>AUTHORIZATION</payment_action>
+				<title>Pay360</title>
 				<allowspecific>0</allowspecific>
 				<group>Offline</group>
 			</pay360>
 		</payment>
-		<pay360_standard>
-			<pay360_payment_method>
-				<enabled/>
-			</pay360_payment_method>
-		</pay360_standard>
 	</default>
 </config>
