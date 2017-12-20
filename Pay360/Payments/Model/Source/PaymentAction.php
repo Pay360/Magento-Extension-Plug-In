@@ -25,8 +25,8 @@ class PaymentAction implements \Magento\Framework\Option\ArrayInterface
 {
     public function toOptionArray() {
         return array(
-            array('value' => Pay360_Payments_Model_Api_Abstract::PAYMENT_TYPE_AUTH, 'label' => __('Authorization')),
-            array('value' => Pay360_Payments_Model_Api_Abstract::PAYMENT_TYPE_SALE, 'label' => __('Sale')),
+            array('value' => \Pay360\Payments\Model\Payment\Pay360::PAYMENT_TYPE_AUTH, 'label' => __('Authorization')),
+            array('value' => \Pay360\Payments\Model\Payment\Pay360::PAYMENT_TYPE_AUCAP, 'label' => __('Authorize & Capture')),
         );
     }
 }

@@ -25,7 +25,6 @@ use Pay360\Payments\Api\Data\SessionInterface;
 
 class Session extends \Magento\Framework\Model\AbstractModel implements SessionInterface
 {
-
     /**
      * @return void
      */

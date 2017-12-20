@@ -23,6 +23,9 @@ namespace Pay360\Payments\Model\Payment;
 
 class Pay360 extends \Magento\Payment\Model\Method\AbstractMethod
 {
+    const PAYMENT_TYPE_AUTH = 'AUTHONLY';
+    const PAYMENT_TYPE_AUCAP = 'AUTHNCAPTURE';
+    const STATE_PENDING_PAY360_PAYMENT = 'pending_pay360_payment';
 
     protected $_code = "pay360";
     protected $_isOffline = true;

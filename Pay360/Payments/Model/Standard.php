@@ -32,17 +32,76 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     const DATA_CHARSET = 'utf-8';
     const CODE = 'pay360_standard';
 
+    /**
+     * Availability option
+     *
+     * @var bool
+     */
     protected $_canAuthorize = true;
+
+    /**
+     * Availability option
+     *
+     * @var bool
+     */
     protected $_canCapture = true;
+
+    /**
+     * Availability option
+     *
+     * @var bool
+     */
     protected $_canCapturePartial = false;
+
+    /**
+     * Availability option
+     *
+     * @var bool
+     */
     protected $_canRefund = true;
+
+    /**
+     * Availability option
+     *
+     * @var bool
+     */
     protected $_canRefundInvoicePartial = true;
+
+    /**
+     * Availability option
+     *
+     * @var bool
+     */
     protected $_canVoid = true;
 
+    /**
+     * @var string
+     */
     protected $_code = 'pay360_standard';
 
+
+    /**
+     * @var string
+     */
     protected $_formBlockType = 'pay360/standard_form';
+
+    /**
+     * @var string
+     */
     protected $_infoBlockType = 'pay360/info';
 
+    /**
+     * @var array
+     */
     protected $_allowCurrencyCode = array('AUD', 'CAD', 'EUR', 'HKD', 'JPY', 'NZD', 'GBP', 'SGD', 'USD');
+
+    /**
+     * get HPP order placed redirect url
+     *
+     * @return string
+     */
+    public function getOrderPlaceRedirectUrl() {
+        return Mage::getUrl('pay360/gateway/redirect', array('_secure' => true));
+    }
+
 }
