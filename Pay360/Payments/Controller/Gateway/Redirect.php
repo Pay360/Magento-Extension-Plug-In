@@ -47,6 +47,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
+        die('good');
         return $this->resultPageFactory->create();
     }
 }
