@@ -21,25 +21,8 @@
 
 namespace Pay360\Payments\Controller\Gateway;
 
-class Redirect extends \Magento\Framework\App\Action\Action
+class Redirect extends GatewayAbstract
 {
-
-    protected $resultPageFactory;
-
-    /**
-     * Constructor
-     *
-     * @param \Magento\Framework\App\Action\Context  $context
-     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
-     */
-    public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Framework\View\Result\PageFactory $resultPageFactory
-    ) {
-        $this->resultPageFactory = $resultPageFactory;
-        parent::__construct($context);
-    }
-
     /**
      * Execute view action
      *
@@ -47,7 +30,27 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        die('good');
-        return $this->resultPageFactory->create();
+        if ($this->_checkoutSession->getLastRealOrderId()) {
+            $response = $this->_nvp->callDoPayment();
+            $pay360session = $this->_pay360sessionFactory->create()->load($response['sessionId'], 'session_id');
+            $pay360session->setOrderId($this->_checkoutSession->getLastRealOrderId())
+                ->setSessionId($response['sessionId'])
+                ->setSessionDate(date("Y-m-d H:i:s"))
+                ->setStatus($response['status'])
+                ->save();
+
+            if ($response['status'] === \Pay360\Payments\Model\Config::STATUS_SUCCESS) {
+                return $this->_resultRedirect->setUrl($response['redirectUrl']);
+            }
+            else {
+                $this->messageManager->addNoticeMessage(__('Pay360 payment failed. please contact for support'));
+                // reinit cart when redirect failed
+                $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
+
+                return $this->_resultRedirect->setUrl('/checkout/cart/');
+            }
+        }
+
+        return $this->_resultRedirect->setUrl('/');
     }
 }

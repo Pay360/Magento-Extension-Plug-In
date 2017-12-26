@@ -6,6 +6,7 @@ namespace Pay360\Payments\Model\Api;
 
 use Magento\Payment\Helper\Formatter;
 use Magento\Payment\Model\Method\Logger;
+use Pay360\Payments\Model\Config;
 
 /**
  * Abstract class for Paypal API wrappers
@@ -29,14 +30,9 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
     protected $_customerAddress;
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var \Pay360\Payments\Helper\Logger
      */
     protected $_logger;
-
-    /**
-     * @var Logger
-     */
-    protected $customLogger;
 
     /**
      * @var \Magento\Framework\Locale\ResolverInterface
@@ -54,35 +50,62 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
     protected $_storeManager;
 
     /**
+     * @var \Magento\Framework\HTTP\ZendClientFactory
+     */
+    protected $_httpClientFactory;
+
+    /**
+     * @var \Magento\Framework\Json\EncoderInterface
+     */
+    protected $_jsonEncoder;
+
+    /**
+     * @var \Magento\Framework\Json\DecoderInterface
+     */
+    protected $_jsonDecoder;
+
+    /**
+     * @var \Magento\Framework\HTTP\Client\Curl
+     */
+    protected $_curlClient;
+
+    /**
      * By default is looking for first argument as array and assigns it as object
      * attributes This behavior may change in child classes
      *
      * @param \Magento\Customer\Helper\Address $customerAddress
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param Logger $customLogger
+     * @param \Pay360\Payments\Helper\Logger $logger
      * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Magento\Directory\Model\RegionFactory $regionFactory
+     * @param \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory
+     * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
      * @param array $data
      */
     public function __construct(
         \Magento\Customer\Helper\Address $customerAddress,
-        \Psr\Log\LoggerInterface $logger,
-        Logger $customLogger,
+        \Pay360\Payments\Helper\Logger $logger,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Directory\Model\RegionFactory $regionFactory,
         \Pay360\Payments\Model\Config $config,
         \Pay360\Payments\Model\Session $pay360session,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory,
+        \Magento\Framework\Json\EncoderInterface $jsonEncoder,
+        \Magento\Framework\Json\DecoderInterface $jsonDecoder,
+        \Magento\Framework\HTTP\Client\Curl $curlClient,
         array $data = []
     ) {
         $this->_customerAddress = $customerAddress;
         $this->_logger = $logger;
-        $this->customLogger = $customLogger;
         $this->_localeResolver = $localeResolver;
         $this->_regionFactory = $regionFactory;
         $this->_config = $config;
         $this->_pay360Session = $pay360session;
         $this->_storeManager = $storeManager;
+        $this->_httpClientFactory = $httpClientFactory;
+        $this->_jsonEncoder = $jsonEncoder;
+        $this->_jsonDecoder = $jsonDecoder;
+        $this->_curlClient = $curlClient;
         parent::__construct($data);
     }
 
@@ -104,7 +127,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
             ]
         ];
 
-        $env = $this->_config->getValue('payment/pay360_standard/test') ? 'test' : 'production';
+        $env = $this->_config->getValue('payment/pay360/test') ? 'test' : 'production';
         if (in_array($env, ['test', 'production']) && in_array($type, ['api', 'hosted'])) {
             return $resource[$env][$type];
         }
@@ -229,28 +252,6 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      */
     public function getFailedPaymentUrl() {
         return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_cancel_url', 'pay360/standard/failedpayment'), array('_secure' => true));
-    }
-
-    /**
-     * User Action
-     */
-    public function getUserAction() {
-        return $this->getSessionData('user_action', self::USER_ACTION_CONTINUE);
-    }
-
-    public function setUserAction($data) {
-        return $this->setSessionData('user_action', $data);
-    }
-
-    /**
-     * Token
-     */
-    public function getToken() {
-        return $this->getSessionData('token');
-    }
-
-    public function setToken($data) {
-        return $this->setSessionData('token', $data);
     }
 
     /**
@@ -386,34 +387,26 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
     /**
      * perform request to Pay360 payment gateway
      */
-    protected function request($headers, $nvpArr) {
-        $http = new Varien_Http_Adapter_Curl();
-        $config = array('timeout' => self::DEFAULT_TIMEOUT);
-        if ($this->getUseProxy()) {
-            $config['proxy'] = $this->getProxyHost(). ':' . $this->getProxyPort();
+    protected function request($nvpArr) {
+        $this->_curlClient->setTimeout(Config::DEFAULT_TIMEOUT);
+        $username = $this->_config->getValue('payment/pay360/api_user');
+        $password = $this->_config->getValue('payment/pay360/api_password');
+        $this->_curlClient->setCredentials($username, $password);
+        $this->_curlClient->addHeader('Content-Type', 'application/json');
+
+        try {
+            $this->_curlClient->post($this->getApiEndpoint(), $this->_jsonEncoder->encode($nvpArr));
+            $response = $this->_curlClient->getBody();
+            $this->_logger->write(['nvpArr'=> $nvpArr, 'response' => $response]);
+
+            if ($response && $data = $this->_jsonDecoder->decode($response)) {
+                return $data;
+            }
         }
-        $http->setConfig($config);
-        $json = !empty($nvpArr) ? Zend_Json::encode($nvpArr) : null;
-        $http->write(Zend_Http_Client::POST, $this->getApiEndpoint(), Zend_Http_Client::HTTP_1, $headers, $json);
-        $response = $http->read();
-        $response = preg_split('/^\r?$/m', $response, 2);
-        $response = trim($response[1]);
-
-        $this->_logger->write(['nvpArr'=> $nvpArr, 'response' => $response]);
-
-        if ($http->getErrno()) {
-            $http->close();
-            $this->setError(array(
-                'type'=>'CURL',
-                'code'=>$http->getErrno(),
-                'message'=>$http->getError()
-            ));
+        catch (\Exception $e) {
+            $this->setError(array( 'type'=>'CURL', 'message'=>$e->getMessage()));
+            $this->_logger->write(array( 'type'=>'CURL', 'message'=>$e->getMessage()));
             $this->setRedirectUrl($this->getApiErrorUrl());
-            return false;
-        }
-        $http->close();
-        if ($response && $data = Zend_Json::decode($response)) {
-            return $data;
         }
 
         $this->setRedirectUrl($this->getApiErrorUrl());

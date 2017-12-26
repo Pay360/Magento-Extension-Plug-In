@@ -3,12 +3,15 @@
 namespace Pay360\Payments\Model\Api;
 
 use Pay360\Payments\Model\Api\AbstractApi;
+use Pay360\Payments\Model\Config;
 
 class Nvp extends AbstractApi {
 
     protected $_checkoutSession;
 
-    protected $_order;
+    protected $_orderIncrementId;
+
+    protected $_lastOrder;
 
     protected $_transaction;
 
@@ -19,8 +22,7 @@ class Nvp extends AbstractApi {
 
     public function __construct(
         \Magento\Customer\Helper\Address $customerAddress,
-        \Psr\Log\LoggerInterface $logger,
-        Logger $customLogger,
+        \Pay360\Payments\Helper\Logger $logger,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Directory\Model\RegionFactory $regionFactory,
         \Pay360\Payments\Model\Config $config,
@@ -29,11 +31,28 @@ class Nvp extends AbstractApi {
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Sales\Api\Data\OrderInterface $order,
         \Pay360\Payments\Model\Transaction $transaction,
+        \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory,
+        \Magento\Framework\Json\EncoderInterface $jsonEncoder,
+        \Magento\Framework\Json\DecoderInterface $jsonDecoder,
+        \Magento\Framework\HTTP\Client\Curl $curlClient,
         array $data = []
     ) {
-        parent::__construct($customerAddress, $logger, $customLogger, $localeResolver, $regionFactory, $config, $pay360session, $storeManager, $data);
+        parent::__construct(
+            $customerAddress,
+            $logger,
+            $localeResolver,
+            $regionFactory,
+            $config,
+            $pay360session,
+            $storeManager,
+            $httpClientFactory,
+            $jsonEncoder,
+            $jsonDecoder,
+            $curlClient,
+            $data
+        );
         $this->_checkoutSession = $checkoutSession;
-        $this->_order = $order;
+        $this->_lastOrder = $order;
         $this->_transaction = $transaction;
     }
 
@@ -45,17 +64,18 @@ class Nvp extends AbstractApi {
         if(!isset($this->_orderIncrementId)) {
             $this->_orderIncrementId = $this->_checkoutSession->getLastRealOrderId();
         }
-        if(!is_object($this->_order)) {
-            $this->_order->loadByIncrementId($this->_orderIncrementId);
+        if(!$this->_lastOrder->getId()) {
+            $this->_lastOrder->loadByIncrementId($this->_orderIncrementId);
         }  
-        return $this->_order;
+
+        return $this->_lastOrder;
     }
 
     public function getAddressDetails($address)
     {
         return array(
-            'line1' => $address->getStreet(1),
-            'line2' => $address->getStreet(2),
+            'line1' => $address->getStreetLine(1),
+            'line2' => $address->getStreetLine(2),
             'city' => $address->getCity(),
             'region' => $address->getRegionCode(),
             'postcode' => $address->getPostcode(),
@@ -76,7 +96,7 @@ class Nvp extends AbstractApi {
                 'description' => 'Hosted Payment Transaction',
                 'commerceType' => 'ECOM', //  Possible Values: ECOM, MOTO, CNP
                 'channel' => 'WEB', //  Possible Values: WEB, MOBILE, SMS, RETAIL, MOTO, IVR, OTHER
-                'deferred' => $this->_config->getValue('payment/pay360_standard/payment_action') == Pay360_Payments_Model_Standard::PAYMENT_TYPE_AUTH ? 1 : 0, // Indicates if you want the Payment to be Authorised and Captured separately. Capture immediately
+                'deferred' => $this->_config->getValue('payment/pay360/payment_action') == \Pay360\Payments\Model\Standard::PAYMENT_TYPE_AUTH ? 1 : 0, // Indicates if you want the Payment to be Authorised and Captured separately. Capture immediately
             ),
             'customer' => array(
                 'registered' => false
@@ -112,7 +132,7 @@ class Nvp extends AbstractApi {
         }
         // customer information for both guest and logged in customer
         $nvpArr['customer']['details'] = array(
-            'name' => $this->_order->getCustomerName(),
+            'name' => $this->_lastOrder->getCustomerName(),
             'address' => $this->getAddressDetails($this->getOrder()->getBillingAddress()),
             'telephone' => $this->getOrder()->getBillingAddress()->getTelephone(),
             'emailAddress' => $this->getOrder()->getCustomerEmail(),
@@ -121,23 +141,23 @@ class Nvp extends AbstractApi {
         );
 
         // look and feel for payment
-        if ($this->_config->getValue('payment/pay360_standard/skin_code') || $this->_config->getValue('payment/pay360_standard/custom_skin_code')) {
-            if ($this->_config->getValue('payment/pay360_standard/custom_skin_code')) {
-                $nvpArr['session']['skin'] = $this->_config->getValue('payment/pay360_standard/custom_skin_code');
+        if ($this->_config->getValue('payment/pay360/skin_code') || $this->_config->getValue('payment/pay360/custom_skin_code')) {
+            if ($this->_config->getValue('payment/pay360/custom_skin_code')) {
+                $nvpArr['session']['skin'] = $this->_config->getValue('payment/pay360/custom_skin_code');
             }
             else {
-                $nvpArr['session']['skin'] = $this->_config->getValue('payment/pay360_standard/skin_code');
+                $nvpArr['session']['skin'] = $this->_config->getValue('payment/pay360/skin_code');
             }
         }
 
-        $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360_standard/installation_id'), self::HPP_MAKE_PAYMENT);
+        $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360/installation_id'), Config::HPP_MAKE_PAYMENT);
         $this->setResourceEndpoint($url);
 
         return $this->call($nvpArr);
     }
 
     public function callDoCapture($transaction, $order) {
-        $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360_standard/installation_id'), self::API_MAKE_CAPTURE);
+        $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360/installation_id'), Config::API_MAKE_CAPTURE);
         $url = str_replace('{transaction_id}', $transaction->getTransactionId(), $url);
         $this->setResourceEndpoint($url);
 
@@ -153,7 +173,7 @@ class Nvp extends AbstractApi {
     }
 
     public function callGetTransactionDetails($transaction) {
-        $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360_standard/installation_id'), self::API_GET_DETAIL);
+        $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360/installation_id'), Config::API_GET_DETAIL);
         $url = str_replace('{transaction_id}', $transaction->getTransactionId(), $url);
         $this->setResourceEndpoint($url);
 
@@ -172,7 +192,7 @@ class Nvp extends AbstractApi {
             )
         );
 
-        $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360_standard/installation_id'), self::API_MAKE_REFUND);
+        $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360/installation_id'), Config::API_MAKE_REFUND);
         $url = str_replace('{transaction_id}', $transaction->getTransactionId(), $url);
         $this->setResourceEndpoint($url);
 
@@ -186,13 +206,7 @@ class Nvp extends AbstractApi {
      * @return array|boolean an associtive array containing the response from the server or false in case of error.
      */
     public function call($nvpArr = array()) {
-        $headers = [
-            "Accept: application/json",
-            "Content-Type: application/json",
-            "Authorization: Basic ".base64_encode($this->_config->getValue('payment/pay360_standard/api_user') . ':'. $this->_config->getValue('payment/pay360_standard/api_password'))
-        ];
-
-        return $this->request($headers, $nvpArr);
+        return $this->request($nvpArr);
     }
 
 }

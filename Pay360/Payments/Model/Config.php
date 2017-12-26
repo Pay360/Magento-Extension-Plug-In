@@ -29,7 +29,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\Helper\Context;
 
-class Config extends AbstractConfig
+class Config
 {
     const PAYMENT_TYPE_PREAUTH = 'PREAUTH';
     const PAYMENT_TYPE_REFUND = 'REFUND';
@@ -78,6 +78,7 @@ class Config extends AbstractConfig
     ) {
         $this->_context = $context;
         $this->_scopeConfig = $context->getScopeConfig();
+        $this->_storeId = null;
     }
 
     /**
@@ -197,19 +198,17 @@ class Config extends AbstractConfig
      */
     public function getValue($key, $storeId = null)
     {
+        $this->_storeId = !empty($storeId) ? $storeId : $this->_storeId;
         switch ($key) {
             case 'getDebugReplacePrivateDataKeys':
                 return $this->methodInstance->getDebugReplacePrivateDataKeys();
             default:
-                $underscored = strtolower(preg_replace('/(.)([A-Z])/', "$1_$2", $key));
-                $path = $this->_getSpecificConfigPath($underscored);
-                if ($path !== null) {
+                if ($key !== null) {
                     $value = $this->_scopeConfig->getValue(
-                        $path,
+                        $key,
                         ScopeInterface::SCOPE_STORE,
                         $this->_storeId
                     );
-                    $value = $this->_prepareValue($underscored, $value);
                     return $value;
                 }
         }

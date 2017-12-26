@@ -9,14 +9,20 @@ namespace  Pay360\Payments\Helper;
 
 class Logger
 {
-    const LOG_FILE_NAME = 'pay360_debug.log';
     const MAGE_CODE = '/app/code/';
 
     protected $_enabled = false; 
+    protected $_config;
+    protected $_systemlogger;
 
-    function __construct()
+    function __construct(
+        \Magento\Payment\Model\Method\Logger $systemlogger,
+        \Pay360\Payments\Model\Config $config
+    )
     {
-        $this->_enabled = Mage::getStoreConfig('payment/pay360_standard/test');
+        $this->_config = $config;
+        $this->_systemlogger = $systemlogger;
+        $this->_enabled = $this->_config->getValue('payment/pay360/test');
     }
 
     /**
@@ -32,23 +38,22 @@ class Logger
                 $file = $last_step['file'];
                 list($pwd, $file) = explode(self::MAGE_CODE, $file);
                 $line = $last_step['line'];
-                Mage::log("Called From ".self::MAGE_CODE."{$file}:{$line}", Zend_Log::DEBUG, self::LOG_FILE_NAME);
+                $this->_systemlogger->debug("Called From ".self::MAGE_CODE."{$file}:{$line}");
             }
-            catch (Exception $e) {
-                Mage::logException($e);
+            catch (\Exception $e) {
+                $this->_systemlogger->debug(array('error' => $e->getMessage()));
             }
 
             if (is_array($content)) {
                 foreach ($content as $key=>$value) {
                     if ($key && $value) {
-                        Mage::log("-- {$key} --", Zend_Log::DEBUG, self::LOG_FILE_NAME);
-                        Mage::log($value, Zend_Log::DEBUG, self::LOG_FILE_NAME);
+                        $this->_systemlogger->debug(array($key => $value));
                     }
                 }
             }
             else {
                 $content = strval($content);
-                Mage::log("String : {$content}", Zend_Log::DEBUG, self::LOG_FILE_NAME);
+                $this->_systemlogger->debug(array('content' => $content));
             }
         }
     }

@@ -21,7 +21,9 @@
 
 namespace Pay360\Payments\Controller\Gateway;
 
-class Buildpaymentform extends \Magento\Framework\App\Action\Action
+use Magento\Framework\Controller\ResultFactory;
+
+class GatewayAbstract extends \Magento\Framework\App\Action\Action
 {
 
     protected $resultPageFactory;
@@ -34,19 +36,27 @@ class Buildpaymentform extends \Magento\Framework\App\Action\Action
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
-        \Magento\Framework\View\Result\PageFactory $resultPageFactory
+        \Magento\Framework\View\Result\PageFactory $resultPageFactory,
+        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Checkout\Model\Session $checkoutSession,
+        \Pay360\Payments\Model\Api\Nvp $nvp,
+        \Pay360\Payments\Helper\Data $pay360Helper,
+        \Pay360\Payments\Model\SessionFactory $sessionFactory
     ) {
-        $this->resultPageFactory = $resultPageFactory;
         parent::__construct($context);
+        $this->_resultPageFactory = $resultPageFactory;
+        $this->_resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+        $this->_customerSession = $customerSession;
+        $this->_checkoutSession = $checkoutSession;
+        $this->_nvp = $nvp;
+        $this->_pay360Helper = $pay360Helper;
+        $this->_pay360sessionFactory = $sessionFactory;
     }
 
     /**
-     * Execute view action
-     *
-     * @return \Magento\Framework\Controller\ResultInterface
+     * child classes handled this function
      */
     public function execute()
     {
-        return $this->resultPageFactory->create();
     }
 }
