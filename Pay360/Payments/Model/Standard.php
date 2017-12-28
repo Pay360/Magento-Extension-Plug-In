@@ -181,6 +181,16 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $transactionBuilder;
 
     /**
+     * @var \Magento\Framework\Json\EncoderInterface
+     */
+    protected $_jsonEncoder;
+
+    /**
+     * @var \Magento\Framework\Json\DecoderInterface
+     */
+    protected $_jsonDecoder;
+
+    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -198,6 +208,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @param Transaction\BuilderInterface $transactionBuilder
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
+     * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
+     * @param \Magento\Framework\Json\DecoderInterface $jsonDecoder
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -219,6 +231,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface $transactionBuilder,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        \Magento\Framework\Json\EncoderInterface $jsonEncoder,
+        \Magento\Framework\Json\DecoderInterface $jsonDecoder,
         array $data = []
     ) {
         parent::__construct(
@@ -240,6 +254,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_exception = $exception;
         $this->transactionRepository = $transactionRepository;
         $this->transactionBuilder = $transactionBuilder;
+        $this->_jsonEncoder = $jsonEncoder;
+        $this->_jsonDecoder = $jsonDecoder;
     }
 
     /**
@@ -873,7 +889,25 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         );
     }
 
-    public function getOrderPlaceRedirectUrl() {
-        return Mage::getUrl('pay360/gateway/redirect', array('_secure' => true));
+    /**
+     * custom logic to check before authorization. we can verify and control payment flow here. 
+     * $body_json -> paymentMethod -> registered, card, billingAddress, paymentClass
+     */
+    public function preAuthCallback($body_json) {
+        $response = array(
+            'callbackResponse' => array(
+                'preAuthCallbackResponse' => array(
+                    'action' => \Pay360\Payments\Model\Config::RESPOND_PROCEED,
+                    'redirect' => array(
+                        'url' => Mage::getUrl('pay360/gateway/paymentsuspend', array('sessionId' => $body_json['sessionId'])),
+                        'frame' => 'CONTAINER' // Possible Values: CONTAINER, TOP
+                    )
+                    // 'return' => array() // not necessary since we allready have call back url
+                )
+            )
+        );
+
+        Mage::helper('pay360/logger')->write(['body_json' => $body_json]);
+        return $this->_jsonEncoder->encode($response);
     }
 }

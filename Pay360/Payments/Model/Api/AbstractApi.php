@@ -79,6 +79,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      * @param \Magento\Directory\Model\RegionFactory $regionFactory
      * @param \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory
      * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
+     * @param \Magento\Framework\Json\DecoderInterface $jsonDecoder
      * @param array $data
      */
     public function __construct(
@@ -197,7 +198,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      * @return string
      */
     public function getApiErrorUrl() {
-        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_error_url', 'pay360/standard/error'), array('_secure' => true));
+        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_error_url', 'pay360/gateway/error'), array('_secure' => true));
     }
 
     /**
@@ -206,7 +207,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      * @return string
      */
     public function getPreAuthCallBackUrl() {
-        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_preauth_callback_url', 'pay360/standard/preauthcallback'), array('_secure' => true));
+        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_preauth_callback_url', 'pay360/gateway/preauthcallback'), array('_secure' => true));
     }
 
     /**
@@ -215,7 +216,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      * @return string
      */
     public function getPostAuthCallBackUrl() {
-        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_postluth_callback_url', 'pay360/standard/postauthcallback'), array('_secure' => true));
+        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_postluth_callback_url', 'pay360/gateway/postauthcallback'), array('_secure' => true));
     }
 
     /**
@@ -224,7 +225,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      * @return string
      */
     public function getTransactionNotificationUrl() {
-        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_transaction_notification_url', 'pay360/standard/transactionnotification'), array('_secure' => true));
+        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_transaction_notification_url', 'pay360/gateway/transactionnotification'), array('_secure' => true));
     }
 
     /**
@@ -233,7 +234,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      * @return string
      */
     public function getReturnUrl() {
-        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_return_url', 'pay360/standard/return'), array('_secure' => true));
+        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_return_url', 'pay360/gateway/gatewayreturn'), array('_secure' => true));
     }
 
     /**
@@ -242,7 +243,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      * @return string
      */
     public function getCancelUrl() {
-        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_cancel_url', 'pay360/standard/cancel'), array('_secure' => true));
+        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_cancel_url', 'pay360/gateway/cancel'), array('_secure' => true));
     }
 
     /**
@@ -251,7 +252,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      * @return string
      */
     public function getFailedPaymentUrl() {
-        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_cancel_url', 'pay360/standard/failedpayment'), array('_secure' => true));
+        return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_cancel_url', 'pay360/gateway/failedpayment'), array('_secure' => true));
     }
 
     /**

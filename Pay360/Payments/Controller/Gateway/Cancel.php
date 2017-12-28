@@ -21,25 +21,8 @@
 
 namespace Pay360\Payments\Controller\Gateway;
 
-class Cancel extends \Magento\Framework\App\Action\Action
+class Cancel extends GatewayAbstract
 {
-
-    protected $resultPageFactory;
-
-    /**
-     * Constructor
-     *
-     * @param \Magento\Framework\App\Action\Context  $context
-     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
-     */
-    public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Framework\View\Result\PageFactory $resultPageFactory
-    ) {
-        $this->resultPageFactory = $resultPageFactory;
-        parent::__construct($context);
-    }
-
     /**
      * Execute view action
      *
