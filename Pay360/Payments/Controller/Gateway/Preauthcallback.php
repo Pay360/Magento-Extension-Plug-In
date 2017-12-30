@@ -24,15 +24,13 @@ namespace Pay360\Payments\Controller\Gateway;
 class Preauthcallback extends GatewayAbstract
 {
     /**
-     * Execute view action
+     * Process PreAuth callback
      *
      * @return \Magento\Framework\Controller\ResultInterface
      */
     public function execute()
     {
-        return $this->resultPageFactory->create();
-
-        $body_json = Zend_Json::decode($this->getRequest()->getRawBody());
-        echo(Mage::getModel('pay360/standard')->preAuthCallback($body_json));
+        $resultJson = $this->_resultJsonFactory->create();
+        return $resultJson->setData($this->_pay360Model->preAuthCallback($this->getRequest()->getPost()));
     }
 }

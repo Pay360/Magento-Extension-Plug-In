@@ -35,7 +35,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     /**
      * @var string
      */
-    protected $_code = \Pay360\Payments\Model\Config::METHOD_WPP_EXPRESS;
+    protected $_code = self::CODE;
 
     /**
      * @var string
@@ -156,11 +156,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_urlBuilder;
 
     /**
-     * @var \Pay360\Payments\Model\CartFactory
-     */
-    protected $_cartFactory;
-
-    /**
      * @var \Magento\Checkout\Model\Session
      */
     protected $_checkoutSession;
@@ -191,6 +186,12 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_jsonDecoder;
 
     /**
+     * @var \Pay360\Payments\Helper\Logger
+     */
+    protected $_pay360Logger;
+
+    /**
+     * NOTE: dont change last 3 params, or error will be thrown
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -198,18 +199,17 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Payment\Helper\Data $paymentData
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Payment\Model\Method\Logger $logger
-     * @param ProFactory $proFactory
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\UrlInterface $urlBuilder
-     * @param CartFactory $cartFactory
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Framework\Exception\LocalizedExceptionFactory $exception
      * @param \Magento\Sales\Api\TransactionRepositoryInterface $transactionRepository
      * @param Transaction\BuilderInterface $transactionBuilder
-     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
      * @param \Magento\Framework\Json\DecoderInterface $jsonDecoder
+     * @param \Pay360\Payments\Helper\Logger $pay360Logger
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -221,18 +221,17 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Payment\Model\Method\Logger $logger,
-        ProFactory $proFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Pay360\Payments\Model\CartFactory $cartFactory,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\Exception\LocalizedExceptionFactory $exception,
         \Magento\Sales\Api\TransactionRepositoryInterface $transactionRepository,
         \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface $transactionBuilder,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \Magento\Framework\Json\EncoderInterface $jsonEncoder,
         \Magento\Framework\Json\DecoderInterface $jsonDecoder,
+        \Pay360\Payments\Helper\Logger $pay360Logger,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct(
@@ -249,13 +248,13 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         );
         $this->_storeManager = $storeManager;
         $this->_urlBuilder = $urlBuilder;
-        $this->_cartFactory = $cartFactory;
         $this->_checkoutSession = $checkoutSession;
         $this->_exception = $exception;
         $this->transactionRepository = $transactionRepository;
         $this->transactionBuilder = $transactionBuilder;
         $this->_jsonEncoder = $jsonEncoder;
         $this->_jsonDecoder = $jsonDecoder;
+        $this->_pay360Logger = $pay360Logger;
     }
 
     /**
@@ -590,30 +589,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * Attempt to accept a pending payment
-     *
-     * @param \Magento\Payment\Model\Info|Payment $payment
-     * @return bool
-     */
-    public function acceptPayment(\Magento\Payment\Model\InfoInterface $payment)
-    {
-        parent::acceptPayment($payment);
-        return $this->_pro->reviewPayment($payment, \Pay360\Payments\Model\Pro::PAYMENT_REVIEW_ACCEPT);
-    }
-
-    /**
-     * Attempt to deny a pending payment
-     *
-     * @param \Magento\Payment\Model\InfoInterface|Payment $payment
-     * @return bool
-     */
-    public function denyPayment(\Magento\Payment\Model\InfoInterface $payment)
-    {
-        parent::denyPayment($payment);
-        return $this->_pro->reviewPayment($payment, \Pay360\Payments\Model\Pro::PAYMENT_REVIEW_DENY);
-    }
-
-    /**
      * Checkout redirect URL getter for onepage checkout (hardcode)
      *
      * @see \Magento\Checkout\Controller\Onepage::savePaymentAction()
@@ -866,12 +841,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function isActive($storeId = null)
     {
-        $pathStandardExpress = 'payment/' . Config::METHOD_WPS_EXPRESS . '/active';
-        $pathPaypalExpress = 'payment/' . Config::METHOD_WPP_EXPRESS . '/active';
-
-        return parent::isActive($storeId)
-        || (bool)(int)$this->_scopeConfig->getValue($pathStandardExpress, ScopeInterface::SCOPE_STORE, $storeId)
-        || (bool)(int)$this->_scopeConfig->getValue($pathPaypalExpress, ScopeInterface::SCOPE_STORE, $storeId);
+        return parent::isActive($storeId) || (bool)(int)$this->_scopeConfig->getValue('payment/pay360/active', ScopeInterface::SCOPE_STORE, $storeId);
     }
 
     /**
@@ -899,7 +869,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 'preAuthCallbackResponse' => array(
                     'action' => \Pay360\Payments\Model\Config::RESPOND_PROCEED,
                     'redirect' => array(
-                        'url' => Mage::getUrl('pay360/gateway/paymentsuspend', array('sessionId' => $body_json['sessionId'])),
+                        'url' => $this->_urlBuilder->getUrl('pay360/gateway/paymentsuspend', array('sessionId' => $body_json['sessionId'])),
                         'frame' => 'CONTAINER' // Possible Values: CONTAINER, TOP
                     )
                     // 'return' => array() // not necessary since we allready have call back url
@@ -907,7 +877,66 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
             )
         );
 
-        Mage::helper('pay360/logger')->write(['body_json' => $body_json]);
+        $this->_pay360Logger->write(['body_json' => $body_json]);
         return $this->_jsonEncoder->encode($response);
+    }
+
+    /**
+     * custom logic to check after authorization
+     */
+    public function postAuthCallback($body_json) {
+        // Default response is cancel
+        $response = array(
+            'callbackResponse' => array(
+                'postAuthCallbackResponse' => array(
+                    'action' => Pay360_Payments_Model_Api_Abstract::RESPOND_CANCEL, // available actions proceed, cancel
+                    'return' => array(
+                        'url' => $this->_nvp->getFailedPaymentUrl()
+                    )
+                )
+            )
+        );
+        try {
+            $transaction = $body_json['transaction'];
+            $model = $this->_pay360transaction->load($transaction['transactionId'], 'transaction_id');
+            $model->setTransactionId($transaction['transactionId'])
+                ->setDeferred(empty($transaction['deferred']) ? false : true)
+                ->setMerchantRef($transaction['merchantRef'])
+                ->setMerchantDescription($transaction['merchantDescription'])
+                ->setType($transaction['type'])
+                ->setAmount($transaction['amount'])
+                ->setStatus($transaction['status'])
+                ->setCurrency($transaction['currency'])
+                ->setTransactionTime($transaction['transactionTime'])
+                ->setReceivedTime($transaction['receivedTime'])
+                ->setChannel($transaction['channel'])
+                ->save();
+
+            // Create/Upate profile if transaction success
+            if ($transaction['status'] == Pay360_Payments_Model_Api_Abstract::PAYMENT_STATUS_SUCCESS) {
+                $this->saveProfile($body_json);
+
+                // set order state with post auth call back. will not append to order status history
+                $order = Mage::getModel('sales/order')->load($transaction['merchantRef']);
+                $newOrderStatus = $this->getConfigData('order_status', Mage_Sales_Model_Order::STATE_NEW, $order->getStoreId());
+                if (empty($newOrderStatus)) {
+                    $newOrderStatus = $order->getStatus();
+                }
+
+                $order->setState(
+                    $newOrderStatus, false,
+                    Mage::helper('pay360')->__('Order #%s updated.', $order->getIncrementId()),
+                    $notified = true
+                )->save();
+                $response['callbackResponse']['postAuthCallbackResponse']['action'] = Pay360_Payments_Model_Api_Abstract::RESPOND_PROCEED;
+                unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
+            }
+        }
+        catch (Exception $e) {
+            Mage::helper('pay360/logger')->write($e->getMessage());
+        }
+
+        Mage::helper('pay360/logger')->write(['body_json' => $body_json]);
+        return Zend_Json::encode($response);
     }
 }

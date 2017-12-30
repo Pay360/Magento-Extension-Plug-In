@@ -26,31 +26,66 @@ use Magento\Framework\Controller\ResultFactory;
 class GatewayAbstract extends \Magento\Framework\App\Action\Action
 {
 
-    protected $resultPageFactory;
+    protected $_resultPageFactory;
+
+    /**
+     * @var \Magento\Framework\Controller\Result\JsonFactory
+     */
+    protected $_resultJsonFactory;
+
+    protected $_resultRedirect;
+    protected $_customerSession;
+    protected $_checkoutSession;
+    protected $_nvp;
+    protected $_pay360Helper;
+    protected $_pay360Logger;
+    protected $_pay360SessionFactory;
+    protected $_pay360Model;
+
+    /**
+     * @var \Magento\Framework\Json\EncoderInterface
+     */
+    protected $_jsonEncoder;
+
+    /**
+     * @var \Magento\Framework\Json\DecoderInterface
+     */
+    protected $_jsonDecoder;
 
     /**
      * Constructor
      *
      * @param \Magento\Framework\App\Action\Context  $context
      * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
+     * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
+        \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Pay360\Payments\Model\Api\Nvp $nvp,
         \Pay360\Payments\Helper\Data $pay360Helper,
+        \Pay360\Payments\Helper\Logger $pay360Logger,
+        \Pay360\Payments\Model\Standard $pay360Model,
+        \Magento\Framework\Json\EncoderInterface $jsonEncoder,
+        \Magento\Framework\Json\DecoderInterface $jsonDecoder,
         \Pay360\Payments\Model\SessionFactory $sessionFactory
     ) {
         parent::__construct($context);
         $this->_resultPageFactory = $resultPageFactory;
+        $this->_resultJsonFactory = $resultJsonFactory;
         $this->_resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $this->_customerSession = $customerSession;
         $this->_checkoutSession = $checkoutSession;
         $this->_nvp = $nvp;
         $this->_pay360Helper = $pay360Helper;
-        $this->_pay360sessionFactory = $sessionFactory;
+        $this->_pay360Logger = $pay360Logger;
+        $this->_pay360Model = $pay360Model;
+        $this->_jsonEncoder = $jsonEncoder;
+        $this->_jsonDecoder = $jsonDecoder;
+        $this->_pay360SessionFactory = $sessionFactory;
     }
 
     /**

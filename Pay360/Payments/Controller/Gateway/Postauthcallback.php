@@ -30,6 +30,7 @@ class Postauthcallback extends GatewayAbstract
      */
     public function execute()
     {
-        return $this->resultPageFactory->create();
+        $resultJson = $this->_resultJsonFactory->create();
+        return $resultJson->setData($this->_pay360Model->postAuthCallback($this->getRequest()->getPost()));
     }
 }
