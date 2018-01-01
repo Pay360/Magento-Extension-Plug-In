@@ -867,7 +867,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * $body_json['customer']
      */
     public function transactionNotificationCallback($body_json) {
-        $this->_pay360Logger->write($body_json);
         $transaction = $body_json['transaction'];
 
         $order = $this->_orderFactory->create()->load($transaction['merchantRef']);
@@ -886,7 +885,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * $body_json -> paymentMethod -> registered, card, billingAddress, paymentClass
      */
     public function preAuthCallback($body_json) {
-        $this->_pay360Logger->write($body_json);
         $response = array(
             'callbackResponse' => array(
                 'preAuthCallbackResponse' => array(
@@ -900,7 +898,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
             )
         );
 
-        $this->_pay360Logger->write(['body_json' => $body_json, 'response' => $response]);
+        $this->_pay360Logger->write(['response' => $response]);
         return $this->_jsonEncoder->encode($response);
     }
 
