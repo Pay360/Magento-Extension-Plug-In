@@ -9,8 +9,9 @@ namespace  Pay360\Payments\Helper;
 
 class Logger
 {
-    const MAGE_CODE = '/app/code/';
-    const LOG_FILE = '/var/log/pay360debug.log';
+    const MAGE_CODE = 'app/code/';
+    const LOG_FILE = 'var/log/pay360debug.log';
+    const DEBUG_CONFIG = 'payment/pay360/test';
 
     protected $_enabled = false; 
     protected $_config;
@@ -24,7 +25,7 @@ class Logger
         $this->_config = $config;
         $this->_psrLogger = $psrLogger;
         $this->_psrLogger->pushHandler(new \Monolog\Handler\StreamHandler(self::LOG_FILE));
-        $this->_enabled = $this->_config->getValue('payment/pay360/test');
+        $this->_enabled = $this->_config->getValue(self::DEBUG_CONFIG);
     }
 
     /**
@@ -34,28 +35,31 @@ class Logger
     public function write($content)
     {
         if ($this->_enabled) {
-            /*call origin*/
             try {
+                // debug fired function
                 $last_step = debug_backtrace()[0];
                 $file = $last_step['file'];
-                list($pwd, $file) = explode(self::MAGE_CODE, $file);
+                $explode = explode(self::MAGE_CODE, $file);
+                if (count($explode) > 1) {
+                    list($pwd, $file) = $explode;
+                }
+                else {
+                    $file = $explode[0];
+                }
                 $line = $last_step['line'];
                 $this->_psrLogger->debug("Called From ".self::MAGE_CODE."{$file}:{$line}");
-            }
-            catch (\Exception $e) {
-                $this->_psrLogger->debug(array('error' => $e->getMessage()));
-            }
 
-            if (is_array($content)) {
-                foreach ($content as $key=>$value) {
-                    if ($key && $value) {
-                        $this->_psrLogger->debug(array($key => $value));
-                    }
+                // debug $content
+                if (is_array($content)) {
+                    $this->_psrLogger->debug("Array : ". serialize($content));
+                }
+                else {
+                    $content = strval($content);
+                    $this->_psrLogger->debug("String : {$content}");
                 }
             }
-            else {
-                $content = strval($content);
-                $this->_psrLogger->debug(array('content' => $content));
+            catch (\Exception $e) {
+                $this->_psrLogger->debug("Error : ".$e->getMessage());
             }
         }
     }

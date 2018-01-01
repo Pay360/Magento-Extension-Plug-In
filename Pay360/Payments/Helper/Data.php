@@ -2,16 +2,55 @@
 
 namespace Pay360\Payments\Helper;
 
+use Magento\Checkout\Model\Cart as CustomerCart;
+
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
+    protected $_customerSession;
+    protected $_checkoutSession;
+    protected $_orderConfig;
+    protected $_orderFactory;
+    protected $cart;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
+     * Constructor
+     *
+     * @param \Magento\Framework\App\Action\Context  $context
+     * @param CustomerCart $cart
+     * @param \Magento\Framework\Message\ManagerInterface $messageManager
+     */
+    public function __construct(
+        \Magento\Framework\App\Helper\Context $context,
+        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Sales\Model\Order\Config $orderConfig,
+        CustomerCart $cart,
+        \Magento\Framework\Message\ManagerInterface $messageManager,
+        \Magento\Sales\Model\OrderFactory $orderFactory
+    ) {
+        parent::__construct($context);
+        $this->_customerSession = $customerSession;
+        $this->_checkoutSession = $checkoutSession;
+        $this->_orderConfig = $orderConfig;
+        $this->_orderFactory = $orderFactory;
+        $this->cart = $cart;
+        $this->messageManager = $messageManager;
+    }
 
     /**
      * Check order view availability
+     *
+     * @param \Magento\Sales\Model\Order $order
      */
     protected function _canViewOrder($order)
     {
-        $customerId = Mage::getSingleton('customer/session')->getCustomerId();
-        $availableStates = Mage::getSingleton('sales/order_config')->getVisibleOnFrontStates();
+        $customerId = $this->_customerSession->getCustomerId();
+        $availableStates = $this->_orderConfig->getVisibleOnFrontStatuses();
         if ($order->getId() && $order->getCustomerId() && ($order->getCustomerId() == $customerId)
             && in_array($order->getState(), $availableStates, $strict = true)
             ) {
@@ -22,17 +61,17 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Try to load valid order by order_id and register it
+     *
+     * @param Integer $increment_id
      */
     protected function _loadValidOrder($increment_id = null) {
         if (!$increment_id) {
             return false;
         }
 
-        $order = Mage::getModel('sales/order')->loadByIncrementId($increment_id);
-
+        $order = $this->_orderFactory->create()->loadByIncrementId($increment_id);
         if ($this->_canViewOrder($order)) {
-            Mage::register('current_order', $order);
-            return true;
+            return $order;
         }
 
         return false;
@@ -40,45 +79,35 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * rebuild cart content if payment failed
+     *
+     * @param Integer $last_order_id
      */
     public function reinitCart($last_order_id) {
-        if (!$this->_loadValidOrder($last_order_id)) {
+        $order = $this->_loadValidOrder($last_order_id);
+        if (!$order) {
             return;
         }
-
-        $order = Mage::registry('current_order');
-        $cart = Mage::getSingleton('checkout/cart');
-        /* @var $cart Mage_Checkout_Model_Cart */
 
         $items = $order->getItemsCollection();
         foreach ($items as $item) {
             try {
-                $cart->addOrderItem($item);
-            } catch (Mage_Core_Exception $e){
-                if (Mage::getSingleton('checkout/session')->getUseNotice(true)) {
-                    Mage::getSingleton('checkout/session')->addNotice($e->getMessage());
-                }
-                else {
-                    Mage::getSingleton('checkout/session')->addError($e->getMessage());
-                }
-                return false;
-            } catch (Exception $e) {
-                Mage::getSingleton('checkout/session')->addException($e,
-                    Mage::helper('checkout')->__("Cannot add item '{$item->getName()}' to the shopping cart.")
-                );
+                $this->cart->addOrderItem($item);
+            }
+            catch (\Exception $e) {
+                $this->messageManager->addNoticeMessage(__("Cannot add item '{$item->getName()}' to the shopping cart."));
                 return false;
             }
         }
 
-        $cart->save();
+        $this->cart->save();
     }
 
     /**
      * get template file for review section of onepage page
      */
     public function reviewhpf() {
-        if (Mage::getSingleton('checkout/session')->getQuote()->getPayment()->getMethodInstance()->getCode() == Pay360_Payments_Model_Standard::CODE
-            && Mage::getStoreConfig('payment/pay360_standard/payment_type')  == Pay360_Payments_Model_Source_Paymenttype::TYPE_HPF) {
+        if ($this->_checkoutSession->getQuote()->getPayment()->getMethodInstance()->getCode() == \Pay360\Payments\Model\Standard::CODE
+            && $this->scopeConfig->getValue('payment/pay360/payment_type')  == \Pay360\Payments\Model\Source\Paymenttype::TYPE_HPF) {
             return 'pay360/review/info.phtml';
         }
         else {

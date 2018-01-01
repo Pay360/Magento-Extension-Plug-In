@@ -30,8 +30,12 @@ class Transactionnotification extends GatewayAbstract
      */
     public function execute()
     {
-        $resultJson = $this->_resultJsonFactory->create();
-        var_dump($this->getRequest()->getPost());
-        return $resultJson->setData($this->_pay360Model->transactionNotificationCallback($this->getRequest()->getPost()));
+        try {
+            $resultJson = $this->_resultJsonFactory->create();
+            return $resultJson->setData($this->_pay360Model->transactionNotificationCallback($this->_jsonDecoder->decode($this->getRawBody())));
+        }
+        catch (\Exception $e) {
+            $this->_pay360Logger->write($e->getMessage());
+        }
     }
 }

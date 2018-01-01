@@ -860,10 +860,33 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
+     * Available resouces
+     * $body_json['history']
+     * $body_json['processing']
+     * $body_json['paymentMethod']
+     * $body_json['customer']
+     */
+    public function transactionNotificationCallback($body_json) {
+        $this->_pay360Logger->write($body_json);
+        $transaction = $body_json['transaction'];
+
+        $order = $this->_orderFactory->create()->load($transaction['merchantRef']);
+        if ($order->getId() && $order->getGrandTotal() == $transaction['amount'] && empty($transaction['deferred'])) {
+            $this->afterCapture($order, $transaction);
+        }
+        else {
+            $this->_pay360Logger->write("Amounts not equal or Payment deferred");
+        }
+
+        $this->_pay360Logger->write(['body_json' => $body_json]);
+    }
+
+    /**
      * custom logic to check before authorization. we can verify and control payment flow here. 
      * $body_json -> paymentMethod -> registered, card, billingAddress, paymentClass
      */
     public function preAuthCallback($body_json) {
+        $this->_pay360Logger->write($body_json);
         $response = array(
             'callbackResponse' => array(
                 'preAuthCallbackResponse' => array(
@@ -877,7 +900,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
             )
         );
 
-        $this->_pay360Logger->write(['body_json' => $body_json]);
+        $this->_pay360Logger->write(['body_json' => $body_json, 'response' => $response]);
         return $this->_jsonEncoder->encode($response);
     }
 

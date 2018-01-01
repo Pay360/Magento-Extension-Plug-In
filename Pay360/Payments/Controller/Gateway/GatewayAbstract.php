@@ -52,6 +52,8 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
      */
     protected $_jsonDecoder;
 
+    protected $_rawBody;
+
     /**
      * Constructor
      *
@@ -86,6 +88,25 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
         $this->_jsonEncoder = $jsonEncoder;
         $this->_jsonDecoder = $jsonDecoder;
         $this->_pay360SessionFactory = $sessionFactory;
+    }
+
+    /**
+     * Return the raw body of the request, if present
+     *
+     * @return string|false Raw body, or false if not present
+     */
+    public function getRawBody()
+    {
+        if (null === $this->_rawBody) {
+            $body = file_get_contents('php://input');
+
+            if (strlen(trim($body)) > 0) {
+                $this->_rawBody = $body;
+            } else {
+                $this->_rawBody = false;
+            }
+        }
+        return $this->_rawBody;
     }
 
     /**
