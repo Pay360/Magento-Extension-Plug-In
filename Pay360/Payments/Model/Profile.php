@@ -71,4 +71,23 @@ class Profile extends \Magento\Framework\Model\AbstractModel implements ProfileI
     {
         return $this->setData(self::ID, $id);
     }
+
+    /**
+     * init pay360 profile by masked pan and customer id. only 1 maskedPan for 1 customer is allowed
+     * @param string $masked_pan
+     * @param integer $customer_id
+     * @return $this
+     */
+    public function initProfileByMaskedPan($masked_pan, $customer_id)
+    {
+        $profile = $this->getCollection()
+            ->addFieldToFilter('masked_pan', array('eq' => $masked_pan))
+            ->addFieldToFilter('customer_id', array('eq' => $customer_id))
+            ->getFirstItem();
+
+        $profile = $profile->getId() ? $profile : $this;
+        $profile->setMaskedPan($masked_pan)->setCustomerId($customer_id);
+
+        return $profile;
+    }
 }

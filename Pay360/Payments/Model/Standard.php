@@ -191,6 +191,26 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_pay360Logger;
 
     /**
+     * @var \Magento\Sales\Model\OrderFactory
+     */
+    protected $_orderFactory;
+
+    /**
+     * @var \Pay360\Payments\Model\TransactionFactory
+     */
+    protected $_transactionFactory;
+
+    /**
+     * @var \Pay360\Payments\Model\ProfileFactory
+     */
+    protected $_profileFactory;
+
+    /**
+     * @var \Pay360\Payments\Model\Api\Nvp
+     */
+    protected $_nvp;
+
+    /**
      * NOTE: dont change last 3 params, or error will be thrown
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
@@ -208,6 +228,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
      * @param \Magento\Framework\Json\DecoderInterface $jsonDecoder
      * @param \Pay360\Payments\Helper\Logger $pay360Logger
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param \Pay360\Payments\Model\TransactionFactory $transactionFactory,
+     * @param \Pay360\Payments\Model\ProfileFactory $profileFactory,
+     * @param \Pay360\Payments\Model\Api\Nvp $nvp,
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
@@ -230,6 +254,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Json\EncoderInterface $jsonEncoder,
         \Magento\Framework\Json\DecoderInterface $jsonDecoder,
         \Pay360\Payments\Helper\Logger $pay360Logger,
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Pay360\Payments\Model\TransactionFactory $transactionFactory,
+        \Pay360\Payments\Model\ProfileFactory $profileFactory,
+        \Pay360\Payments\Model\Api\Nvp $nvp,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
@@ -255,6 +283,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_jsonEncoder = $jsonEncoder;
         $this->_jsonDecoder = $jsonDecoder;
         $this->_pay360Logger = $pay360Logger;
+        $this->_orderFactory = $orderFactory;
+        $this->_transactionFactory = $transactionFactory;
+        $this->_profileFactory = $profileFactory;
+        $this->_nvp = $nvp;
     }
 
     /**
@@ -334,12 +366,16 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @return mixed
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getConfigData($field, $storeId = null)
-    {
-        if ('order_place_redirect_url' === $field) {
-            return $this->getOrderPlaceRedirectUrl();
+    public function getConfigData($key, $default=false, $storeId = null) {
+        if (!$this->hasData($key))
+		{
+            $value = $this->scopeConfig->getValue('payment/pay360/'.$key, $storeId);
+            if (is_null($value) || false===$value) {
+                $value = $default;
+            }
+            $this->setData($key, $value);
         }
-        return $this->_pro->getConfig()->getValue($field);
+        return $this->getData($key);
     }
 
     /**
@@ -882,7 +918,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
 
     /**
      * custom logic to check before authorization. we can verify and control payment flow here. 
-     * $body_json -> paymentMethod -> registered, card, billingAddress, paymentClass
+     * @param $body_json -> paymentMethod -> registered, card, billingAddress, paymentClass
      */
     public function preAuthCallback($body_json) {
         $response = array(
@@ -899,7 +935,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         );
 
         $this->_pay360Logger->write(['response' => $response]);
-        return $this->_jsonEncoder->encode($response);
+        return $response;
     }
 
     /**
@@ -910,7 +946,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $response = array(
             'callbackResponse' => array(
                 'postAuthCallbackResponse' => array(
-                    'action' => Pay360_Payments_Model_Api_Abstract::RESPOND_CANCEL, // available actions proceed, cancel
+                    'action' => \Pay360\Payments\Model\Config::RESPOND_CANCEL, // available actions proceed, cancel
                     'return' => array(
                         'url' => $this->_nvp->getFailedPaymentUrl()
                     )
@@ -919,7 +955,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         );
         try {
             $transaction = $body_json['transaction'];
-            $model = $this->_pay360transaction->load($transaction['transactionId'], 'transaction_id');
+            $model = $this->_transactionFactory->create()->load($transaction['transactionId'], 'transaction_id');
             $model->setTransactionId($transaction['transactionId'])
                 ->setDeferred(empty($transaction['deferred']) ? false : true)
                 ->setMerchantRef($transaction['merchantRef'])
@@ -934,30 +970,64 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 ->save();
 
             // Create/Upate profile if transaction success
-            if ($transaction['status'] == Pay360_Payments_Model_Api_Abstract::PAYMENT_STATUS_SUCCESS) {
+            if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
                 $this->saveProfile($body_json);
 
                 // set order state with post auth call back. will not append to order status history
-                $order = Mage::getModel('sales/order')->load($transaction['merchantRef']);
-                $newOrderStatus = $this->getConfigData('order_status', Mage_Sales_Model_Order::STATE_NEW, $order->getStoreId());
+                $order = $this->_orderFactory->create()->load($transaction['merchantRef']);
+                $newOrderStatus = $this->getConfigData('order_status', \Magento\Sales\Model\Order::STATE_NEW, $order->getStoreId());
                 if (empty($newOrderStatus)) {
                     $newOrderStatus = $order->getStatus();
                 }
 
                 $order->setState(
                     $newOrderStatus, false,
-                    Mage::helper('pay360')->__('Order #%s updated.', $order->getIncrementId()),
+                    __('Order #%s updated.', $order->getIncrementId()),
                     $notified = true
                 )->save();
-                $response['callbackResponse']['postAuthCallbackResponse']['action'] = Pay360_Payments_Model_Api_Abstract::RESPOND_PROCEED;
+                $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
         }
         catch (Exception $e) {
-            Mage::helper('pay360/logger')->write($e->getMessage());
+            $this->_pay360Logger->write($e->getMessage());
         }
 
-        Mage::helper('pay360/logger')->write(['body_json' => $body_json]);
-        return Zend_Json::encode($response);
+        $this->_pay360Logger->write(['body_json' => $body_json]);
+        return $response;
+    }
+
+    /**
+     * create or update payment profile. dont save duplicate card
+     *
+     * @param array $body_json
+     */
+    protected function saveProfile($body_json)
+    {
+        try {
+            $card = $body_json['paymentMethod']['card'];
+            $registered = $body_json['paymentMethod']['registered'];
+            $customer_id = $body_json['customer']['merchantRef'];
+            $profile_id = $body_json['customer']['id'];
+
+            $profile = $this->_profileFactory->create()->initProfileByMaskedPan($card['maskedPan'], $customer_id);
+            $profile->setCardToken($card['cardToken'])
+                ->setProfileId($profile_id)
+                ->setRegistered((boolean)$registered)
+                ->setNew($card['new'])
+                ->setCardType($card['cardType'])
+                ->setCardUsageType($card['cardUsageType'])
+                ->setCardScheme($card['cardScheme'])
+                ->setCategory($card['cardCategory'])
+                ->setExpiryDate($card['expiryDate'])
+                ->setIssuer($card['issuer'])
+                ->setIssuerCountry($card['issuerCountry'])
+                ->setCardHolderName($card['cardHolderName'])
+                ->setCardNickName($card['cardNickname'])
+                ->save();
+        }
+        catch (Exception $e) {
+            $this->_pay360Logger->write($e->getMessage());
+        }
     }
 }
