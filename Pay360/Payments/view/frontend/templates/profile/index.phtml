@@ -1,1 +1,33 @@
-Hello profile/index.phtml
+<?php
+// @codingStandardsIgnoreFile
+
+/* @var $block \Pay360\Payments\Block\Profile\Index */
+?>
+<?php $_profiles = $block->getCollection(); ?>
+<?php if($_profiles->getSize()): ?>
+<table class="data-table" id="my-profiles-table">
+    <thead>
+        <tr>
+            <th><?php echo __('Card Type') ?></th>
+            <th><?php echo __('Card Category') ?></th>
+            <th><?php echo __('Masked PAN') ?></th>
+            <th><?php echo __('Expiry Date') ?></span></th>
+            <th><?php echo __('Issuer') ?></span></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php $_odd = ''; ?>
+        <?php foreach ($_profiles as $_profile): ?>
+        <tr>
+            <td><?php echo $_profile->getCardType() ?></td>
+            <td><?php echo $_profile->getCardCategory() ?></span></td>
+            <td><?php echo $_profile->getMaskedPan() ?></td>
+            <td><?php echo $_profile->getExpiryDate() ?></td>
+            <td><em><?php echo $_profile->getIssuer() ?></em></td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+<?php else: ?>
+    <p><?php echo __('Pay360 profile information not found.'); ?></p>
+<?php endif ?>

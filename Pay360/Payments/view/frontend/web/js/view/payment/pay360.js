@@ -10,6 +10,10 @@ define(
         'use strict';
         rendererList.push(
             {
+                type: 'pay360hpf',
+                component: 'Pay360_Payments/js/view/payment/method-renderer/pay360-method-hpf'
+            },
+            {
                 type: 'pay360',
                 component: 'Pay360_Payments/js/view/payment/method-renderer/pay360-method'
             }

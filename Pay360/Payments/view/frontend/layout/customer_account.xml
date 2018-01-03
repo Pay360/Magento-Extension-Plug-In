@@ -4,7 +4,7 @@
         <referenceBlock name="customer_account_navigation">
             <block class="Magento\Framework\View\Element\Html\Link\Current" ifconfig="payment/pay360/active" name="customer-account-navigation-pay360-profile">
                 <arguments>
-                    <argument name="path" xsi:type="string">pay360/profile/index</argument>
+                    <argument name="path" xsi:type="string">pay360/profile</argument>
                     <argument name="label" xsi:type="string">Pay360 Profile</argument>
                 </arguments>
             </block>

@@ -15,6 +15,7 @@
 												<item name="payment" xsi:type="array">
 													<item name="children" xsi:type="array">
 														<item name="renders" xsi:type="array">
+                                                            <!-- merge payment method renders here -->
 															<item name="children" xsi:type="array">
 																<item name="pay360" xsi:type="array">
 																	<item name="component" xsi:type="string">Pay360_Payments/js/view/payment/pay360</item>
@@ -22,6 +23,9 @@
 																		<item name="pay360" xsi:type="array">
 																			<item name="isBillingAddressRequired" xsi:type="boolean">true</item>
 																		</item>
+                                                                        <item name="pay360hpf" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
+                                                                        </item>
 																	</item>
 																</item>
 															</item>

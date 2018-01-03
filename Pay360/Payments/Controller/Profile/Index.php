@@ -47,6 +47,8 @@ class Index extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        return $this->resultPageFactory->create();
+        $resultPage = $this->resultPageFactory->create();
+        $resultPage->getConfig()->getTitle()->set(__('Pay360 Customer Profile'));
+        return $resultPage;
     }
 }

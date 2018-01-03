@@ -36,4 +36,16 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
             'Pay360\Payments\Model\ResourceModel\Profile'
         );
     }
+
+    /**
+     * Filter collection by customer id 
+     *
+     * @param integer $customer_id
+     * @return collection
+     */
+    public function addCustomerFilter($customer_id)
+    {
+        $this->getSelect()->where("customer_id = ?", $customer_id);
+        return $this;
+    }
 }

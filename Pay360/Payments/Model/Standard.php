@@ -980,11 +980,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                     $newOrderStatus = $order->getStatus();
                 }
 
-                $order->setState(
-                    $newOrderStatus, false,
-                    __('Order #%s updated.', $order->getIncrementId()),
-                    $notified = true
-                )->save();
+                $order->setState($newOrderStatus, true);
+                $order->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
+                $order->addStatusToHistory(__('Order #%s updated.', $order->getIncrementId()));
+                $order->save();
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
