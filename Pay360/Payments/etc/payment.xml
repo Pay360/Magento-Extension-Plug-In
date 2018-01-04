@@ -9,5 +9,8 @@
 		<method name="pay360">
 			<allow_multiple_address>1</allow_multiple_address>
 		</method>
+		<method name="pay360hpf">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
 	</methods>
 </payment>
