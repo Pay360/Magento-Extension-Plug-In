@@ -203,6 +203,11 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_nvp;
 
     /**
+     * @var \Pay360\Payments\Model\Config
+     */
+    protected $_config;
+
+    /**
      * NOTE: dont change last 3 params, or error will be thrown
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
@@ -224,6 +229,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Pay360\Payments\Model\TransactionFactory $transactionFactory,
      * @param \Pay360\Payments\Model\ProfileFactory $profileFactory,
      * @param \Pay360\Payments\Model\Api\Nvp $nvp,
+     * @param \Pay360\Payments\Model\config $config,
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
@@ -250,6 +256,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         \Pay360\Payments\Model\TransactionFactory $transactionFactory,
         \Pay360\Payments\Model\ProfileFactory $profileFactory,
         \Pay360\Payments\Model\Api\Nvp $nvp,
+        \Pay360\Payments\Model\config $config,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
@@ -279,6 +286,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_transactionFactory = $transactionFactory;
         $this->_profileFactory = $profileFactory;
         $this->_nvp = $nvp;
+        $this->_config = $config;
     }
 
     /**
@@ -657,7 +665,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     public function canCapture()
     {
         $payment = $this->getInfoInstance();
-        $this->_pro->getConfig()->setStoreId($payment->getOrder()->getStore()->getId());
+        $this->_config->setStoreId($payment->getOrder()->getStore()->getId());
 
         if ($payment->getAdditionalInformation($this->_isOrderPaymentActionKey)) {
             $orderTransaction = $this->getOrderTransaction($payment);
@@ -852,10 +860,11 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                     $newOrderStatus = $order->getStatus();
                 }
 
-                $order->setState($newOrderStatus, true);
-                $order->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
-                $order->addStatusToHistory(__('Order #%s updated.', $order->getIncrementId()));
-                $order->save();
+                $order->setState(
+                    $newOrderStatus, false,
+                    __('Order '.$order->getIncrementId().' updated.') ,
+                    $notified = true
+                )->save();
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
