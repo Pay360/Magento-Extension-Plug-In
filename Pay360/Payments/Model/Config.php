@@ -221,7 +221,7 @@ class Config
      * @return boolean
      */
     public function isTest() {
-        return $this->getValue('payment/pay360_standard/test');
+        return $this->getValue('payment/pay360/test');
     }
 
     /**

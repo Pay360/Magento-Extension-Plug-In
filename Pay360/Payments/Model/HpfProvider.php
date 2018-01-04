@@ -1,5 +1,5 @@
 <?php
-namespace Magento\Paypal\Model;
+namespace Pay360\Payments\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\UrlInterface;
@@ -7,20 +7,7 @@ use Magento\Payment\Helper\Data as PaymentHelper;
 
 class HpfProvider implements ConfigProviderInterface
 {
-    /**
-     * @var string[]
-     */
-    protected $methodCodes = [
-        Config::METHOD_PAYFLOWADVANCED,
-        Config::METHOD_PAYFLOWLINK,
-        Config::METHOD_HOSTEDPRO,
-    ];
-
-    /**
-     * @var \Magento\Payment\Model\Method\AbstractMethod[]
-     */
-    protected $methods = [];
-
+    CONST CODE = 'hpf';
     /**
      * @var PaymentHelper
      */
@@ -32,19 +19,22 @@ class HpfProvider implements ConfigProviderInterface
     protected $urlBuilder;
 
     /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
+    protected $scopeConfig;
+
+    /**
      * @param PaymentHelper $paymentHelper
      * @param UrlInterface $urlBuilder
      */
     public function __construct(
         PaymentHelper $paymentHelper,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         UrlInterface $urlBuilder
     ) {
         $this->paymentHelper = $paymentHelper;
         $this->urlBuilder = $urlBuilder;
-
-        foreach ($this->methodCodes as $code) {
-            $this->methods[$code] = $this->paymentHelper->getMethodInstance($code);
-        }
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -54,14 +44,13 @@ class HpfProvider implements ConfigProviderInterface
     {
         $config = [
             'payment' => [
-                'paypalIframe' => [],
+                'pay360hpf' => [
+                    'method' => 'Hosted Payment Form',
+                    'actionUrl' => $this->getFrameActionUrl(),
+                    'isActive' => $this->scopeConfig->getValue('payment/pay360/payment_type') == self::CODE
+                ]
             ],
         ];
-        foreach ($this->methodCodes as $code) {
-            if ($this->methods[$code]->isAvailable()) {
-                $config['payment']['paypalIframe']['actionUrl'][$code] = $this->getFrameActionUrl($code);
-            }
-        }
 
         return $config;
     }
@@ -69,24 +58,10 @@ class HpfProvider implements ConfigProviderInterface
     /**
      * Get frame action URL
      *
-     * @param string $code
      * @return string
      */
-    protected function getFrameActionUrl($code)
+    protected function getFrameActionUrl()
     {
-        $url = '';
-        switch ($code) {
-            case Config::METHOD_PAYFLOWADVANCED:
-                $url = $this->urlBuilder->getUrl('paypal/payflowadvanced/form', ['_secure' => true]);
-                break;
-            case Config::METHOD_PAYFLOWLINK:
-                $url = $this->urlBuilder->getUrl('paypal/payflow/form', ['_secure' => true]);
-                break;
-            case Config::METHOD_HOSTEDPRO:
-                $url = $this->urlBuilder->getUrl('paypal/hostedpro/redirect', ['_secure' => true]);
-                break;
-        }
-
-        return $url;
+        return $this->urlBuilder->getUrl('pay360/gateway/redirect/', ['_secure' => true]);
     }
 }

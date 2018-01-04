@@ -51,7 +51,7 @@ class ListCards extends Command
     protected function configure()
     {
         $this->setName("pay360_payments:listcards");
-        $this->setDescription("list masked cards");
+        $this->setDescription("list cards by customer email");
         $this->setDefinition([
             new InputArgument(self::NAME_ARGUMENT, InputArgument::OPTIONAL, "Name"),
             new InputOption(self::NAME_OPTION, "-a", InputOption::VALUE_NONE, "Option functionality")

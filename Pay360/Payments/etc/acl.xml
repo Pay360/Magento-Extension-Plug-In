@@ -6,7 +6,7 @@
 				<resource id="Magento_Backend::stores">
 					<resource id="Magento_Backend::stores_settings">
 						<resource id="Magento_Config::config">
-							<resource id="Pay360_Payments::config_pay360_payments" title="pay360_standard"/>
+							<resource id="Pay360_Payments::config_pay360_payments" title="pay360"/>
 						</resource>
 					</resource>
 				</resource>

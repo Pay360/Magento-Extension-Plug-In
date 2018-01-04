@@ -154,7 +154,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
             if ($storeId === null && $this->getPayment() instanceof Varien_Object) {
                 $storeId = $this->getPayment()->getOrder()->getStoreId();
             }
-            $value = $this->_config->getValue('payment/pay360_standard/'.$key, $storeId);
+            $value = $this->_config->getValue('payment/pay360/'.$key, $storeId);
             if (is_null($value) || false===$value) {
                 $value = $default;
             }

@@ -21,6 +21,8 @@
 
 namespace Pay360\Payments\Model;
 
+use Magento\Store\Model\ScopeInterface;
+
 class Standard extends \Magento\Payment\Model\Method\AbstractMethod
 {
 
@@ -30,22 +32,12 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     const STATE_PENDING_PAY360_PAYMENT = 'pending_pay360_payment';
 
     const DATA_CHARSET = 'utf-8';
-    const CODE = 'pay360_standard';
+    const CODE = 'pay360';
 
     /**
      * @var string
      */
     protected $_code = self::CODE;
-
-    /**
-     * @var string
-     */
-    protected $_formBlockType = \Pay360\Payments\Block\Express\Form::class;
-
-    /**
-     * @var string
-     */
-    protected $_infoBlockType = \Pay360\Payments\Block\Payment\Info::class;
 
     /**
      * Availability option
@@ -290,72 +282,13 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * Store setter
-     * Also updates store ID in config object
-     *
-     * @param \Magento\Store\Model\Store|int $store
-     * @return $this
-     */
-    public function setStore($store)
-    {
-        $this->setData('store', $store);
-        if (null === $store) {
-            $store = $this->_storeManager->getStore()->getId();
-        }
-        $this->_pro->getConfig()->setStoreId(is_object($store) ? $store->getId() : $store);
-        return $this;
-    }
-
-    /**
      * Can be used in regular checkout
      *
      * @return bool
      */
     public function canUseCheckout()
     {
-        if ($this->_scopeConfig->isSetFlag(
-            'payment/hosted_pro/active',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        ) && !$this->_scopeConfig->isSetFlag(
-            'payment/hosted_pro/display_ec',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        )
-        ) {
-            return false;
-        }
         return parent::canUseCheckout();
-    }
-
-    /**
-     * Whether method is available for specified currency
-     *
-     * @param string $currencyCode
-     * @return bool
-     */
-    public function canUseForCurrency($currencyCode)
-    {
-        return $this->_pro->getConfig()->isCurrencyCodeSupported($currencyCode);
-    }
-
-    /**
-     * Payment action getter compatible with payment model
-     *
-     * @see \Magento\Sales\Model\Payment::place()
-     * @return string
-     */
-    public function getConfigPaymentAction()
-    {
-        return $this->_pro->getConfig()->getPaymentAction();
-    }
-
-    /**
-     * Check whether payment method can be used
-     * @param \Magento\Quote\Api\Data\CartInterface|Quote|null $quote
-     * @return bool
-     */
-    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
-    {
-        return parent::isAvailable($quote) && $this->_pro->getConfig()->isMethodAvailable();
     }
 
     /**
@@ -369,7 +302,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     public function getConfigData($key, $default=false, $storeId = null) {
         if (!$this->hasData($key))
 		{
-            $value = $this->scopeConfig->getValue('payment/pay360/'.$key, $storeId);
+            if (null === $storeId) {
+                $storeId = $this->_storeManager->getStore()->getId();
+            }
+            $value = $this->_scopeConfig->getValue('payment/pay360/'.$key, ScopeInterface::SCOPE_STORE, $storeId);
             if (is_null($value) || false===$value) {
                 $value = $default;
             }

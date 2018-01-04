@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
-	<group id="default">
-		<job instance="Pay360\Payments\Cron\HideExpiredCards" method="execute" name="pay360_payments_hideexpiredcards">
-			<schedule>0 0 * * *</schedule>
-		</job>
-	</group>
-</config>

@@ -1,36 +1,43 @@
 <?php
-namespace Magento\Paypal\Model;
+namespace Pay360\Payments\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Paypal\Model\Billing\AgreementFactory;
 use Magento\Customer\Helper\Session\CurrentCustomer;
-use Magento\Paypal\Model\Payment\Method\Billing\AbstractAgreement;
+use Magento\Framework\UrlInterface;
 
 /**
  * Class BillingAgreementConfigProvider
  */
 class HppProvider implements ConfigProviderInterface
 {
+    CONST CODE = 'hpp';
     /**
      * @var CurrentCustomer
      */
     protected $currentCustomer;
 
     /**
-     * @var AgreementFactory
+     * @var UrlInterface
      */
-    protected $agreementFactory;
+    protected $urlBuilder;
+
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
+    protected $scopeConfig;
 
     /**
      * @param CurrentCustomer $currentCustomer
-     * @param AgreementFactory $agreementFactory
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         CurrentCustomer $currentCustomer,
-        AgreementFactory $agreementFactory
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        UrlInterface $urlBuilder
     ) {
         $this->currentCustomer = $currentCustomer;
-        $this->agreementFactory = $agreementFactory;
+        $this->urlBuilder = $urlBuilder;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -40,13 +47,25 @@ class HppProvider implements ConfigProviderInterface
     {
         $config = [
             'payment' => [
-                'paypalBillingAgreement' => [
-                    'agreements' => $this->getBillingAgreements(),
-                    'transportName' => AbstractAgreement::TRANSPORT_BILLING_AGREEMENT_ID
+                'pay360' => [
+                    'method' => 'Hosted Payment Page',
+                    'actionUrl' => $this->getFrameActionUrl(),
+                    'isActive' => $this->scopeConfig->getValue('payment/pay360/payment_type') == self::CODE
                 ]
             ]
         ];
 
         return $config;
+    }
+
+    /**
+     * Get frame action URL
+     *
+     * @param string $code
+     * @return string
+     */
+    protected function getFrameActionUrl()
+    {
+        return $this->urlBuilder->getUrl('pay360/gateway/redirect/', ['_secure' => true]);
     }
 }
