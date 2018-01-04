@@ -21,7 +21,7 @@
 
 namespace Pay360\Payments\Controller\Gateway;
 
-class Cancelhpf extends GatewayAbstract
+class Gatewayreturnhpf extends GatewayAbstract
 {
     /**
      * Execute view action
@@ -30,10 +30,6 @@ class Cancelhpf extends GatewayAbstract
      */
     public function execute()
     {
-        $this->messageManager->addNoticeMessage(__('Payment Cancel!'));
-        // reinit cart when redirect failed
-        $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
-
         return $this->_resultPageFactory->create();
     }
 }

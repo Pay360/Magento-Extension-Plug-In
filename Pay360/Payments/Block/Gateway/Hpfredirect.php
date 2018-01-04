@@ -19,17 +19,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Pay360\Payments\Controller\Gateway;
+namespace Pay360\Payments\Block\Gateway;
 
-class Returnhpf extends GatewayAbstract
+class Hpfredirect extends \Magento\Framework\View\Element\Template
 {
-    /**
-     * Execute view action
-     *
-     * @return \Magento\Framework\Controller\ResultInterface
-     */
-    public function execute()
-    {
-        return $this->resultPageFactory->create();
+    protected $_config;
+
+    public function __construct(
+        \Magento\Framework\View\Element\Template\Context $context,
+        \Pay360\Payments\Model\Config $config,
+        array $data = array()
+    ) {
+        parent::__construct($context, $data);
+        $this->_config = $config;
+    }
+
+    public function getRedirectUrl() {
+        return $this->_config->getUrlBuilder()->getUrl('checkout/onepage/success', array('_secure' => true));
     }
 }
