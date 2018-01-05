@@ -814,7 +814,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
             )
         );
 
-        $this->_pay360Logger->write(['response' => $response]);
+        $this->_pay360Logger->write($response);
         return $response;
     }
 
