@@ -11,7 +11,6 @@
                 <payment_action>AUTHORIZATION</payment_action>
 				<title>Pay360</title>
 				<allowspecific>0</allowspecific>
-				<group>Offline</group>
 			</pay360>
 		</payment>
 	</default>

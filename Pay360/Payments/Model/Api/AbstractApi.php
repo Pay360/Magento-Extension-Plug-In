@@ -410,7 +410,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
         try {
             $this->_curlClient->post($this->getApiEndpoint(), $this->_jsonEncoder->encode($nvpArr));
             $response = $this->_curlClient->getBody();
-            $this->_logger->write(['nvpArr'=> $nvpArr, 'response' => $response]);
+            $this->_logger->write(['nvpArr'=> $nvpArr, 'response' => $response, 'endpoint' => $this->getApiEndpoint()]);
 
             if ($response && $data = $this->_jsonDecoder->decode($response)) {
                 return $data;

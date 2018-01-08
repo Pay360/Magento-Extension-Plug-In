@@ -208,6 +208,11 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_config;
 
     /**
+     * @var \Magento\Sales\Model\Order\Email\Sender\OrderSender
+     */
+    protected $_orderSender;
+
+    /**
      * NOTE: dont change last 3 params, or error will be thrown
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
@@ -230,6 +235,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Pay360\Payments\Model\ProfileFactory $profileFactory,
      * @param \Pay360\Payments\Model\Api\Nvp $nvp,
      * @param \Pay360\Payments\Model\config $config,
+     * @param \Magento\Sales\Model\Order\Email\Sender\OrderSender
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
@@ -257,6 +263,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         \Pay360\Payments\Model\ProfileFactory $profileFactory,
         \Pay360\Payments\Model\Api\Nvp $nvp,
         \Pay360\Payments\Model\config $config,
+        \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
@@ -287,6 +294,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_profileFactory = $profileFactory;
         $this->_nvp = $nvp;
         $this->_config = $config;
+        $this->_orderSender = $orderSender;
     }
 
     /**
@@ -333,11 +341,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         $paypalTransactionData = $this->_checkoutSession->getPaypalTransactionData();
-        if (!is_array($paypalTransactionData)) {
-            $this->_placeOrder($payment, $amount);
-        } else {
-            $this->_importToPayment($this->_pro->getApi()->setData($paypalTransactionData), $payment);
-        }
 
         $payment->setAdditionalInformation($this->_isOrderPaymentActionKey, true);
 
@@ -347,8 +350,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
 
         $order = $payment->getOrder();
         $orderTransactionId = $payment->getTransactionId();
-
-        $api = $this->_callDoAuthorize($amount, $payment, $orderTransactionId);
 
         $state = \Magento\Sales\Model\Order::STATE_PROCESSING;
         $status = true;
@@ -366,8 +367,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
             ->setTransactionId($payment->getTransactionId())
             ->build(Transaction::TYPE_ORDER);
         $payment->addTransactionCommentsToOrder($transaction, $message);
-
-        $this->_pro->importPaymentInfo($api, $payment);
 
         if ($payment->getIsTransactionPending()) {
             $message = __(
@@ -401,18 +400,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * Authorize payment
-     *
-     * @param \Magento\Framework\DataObject|\Magento\Payment\Model\InfoInterface|Payment $payment
-     * @param float $amount
-     * @return $this
-     */
-    public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
-    {
-        return $this->_placeOrder($payment, $amount);
-    }
-
-    /**
      * Void payment
      *
      * @param \Magento\Framework\DataObject|\Magento\Payment\Model\InfoInterface|Payment $payment
@@ -432,7 +419,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 $payment->setTransactionId($orderTransaction->getTxnId() . '-void');
             }
         }
-        $this->_pro->void($payment);
+        //$this->_nvp->callDo($payment);
         return $this;
     }
 
@@ -447,89 +434,23 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-        $authorizationTransaction = $payment->getAuthorizationTransaction();
-        $authorizationPeriod = abs(intval($this->getConfigData('authorization_honor_period')));
-        $maxAuthorizationNumber = abs(intval($this->getConfigData('child_authorization_number')));
         $order = $payment->getOrder();
-        $isAuthorizationCreated = false;
+        $transaction = $this->_transactionFactory->create()->load($order->getId(), 'merchant_ref');
+        // apply capture logic here. only take place if order was place with Authorize only
+        $response = $this->_nvp->callDoCapture($transaction, $order);
 
-        if ($payment->getAdditionalInformation($this->_isOrderPaymentActionKey)) {
-            $voided = false;
-            if (!$authorizationTransaction->getIsClosed() && $this->_isTransactionExpired(
-                $authorizationTransaction,
-                $authorizationPeriod
-            )
-            ) {
-                //Save payment state and configure payment object for voiding
-                $isCaptureFinal = $payment->getShouldCloseParentTransaction();
-                $payment->setShouldCloseParentTransaction(false);
-                $payment->setParentTransactionId($authorizationTransaction->getTxnId());
-                $payment->unsTransactionId();
-                $payment->setVoidOnlyAuthorization(true);
-                $payment->void(new \Magento\Framework\DataObject());
-
-                //Revert payment state after voiding
-                $payment->unsAuthorizationTransaction();
-                $payment->unsTransactionId();
-                $payment->setShouldCloseParentTransaction($isCaptureFinal);
-                $voided = true;
-            }
-
-            if ($authorizationTransaction->getIsClosed() || $voided) {
-                if ($payment->getAdditionalInformation($this->_authorizationCountKey) > $maxAuthorizationNumber - 1) {
-                    $this->_exception->create(
-                        ['phrase' => __('The maximum number of child authorizations is reached.')]
-                    );
-                }
-                $api = $this->_callDoAuthorize($amount, $payment, $authorizationTransaction->getParentTxnId());
-
-                //Adding authorization transaction
-                $this->_pro->importPaymentInfo($api, $payment);
-                $payment->setTransactionId($api->getTransactionId());
-                $payment->setParentTransactionId($authorizationTransaction->getParentTxnId());
-                $payment->setIsTransactionClosed(false);
-
-                $formatedPrice = $order->getBaseCurrency()->formatTxt($amount);
-
-                if ($payment->getIsTransactionPending()) {
-                    $message = __(
-                        'We\'ll authorize the amount of %1 as soon as the payment gateway approves it.',
-                        $formatedPrice
-                    );
-                } else {
-                    $message = __('The authorized amount is %1.', $formatedPrice);
-                }
-
-                $transaction = $this->transactionBuilder->setPayment($payment)
-                    ->setOrder($order)
-                    ->setTransactionId($payment->getTransactionId())
-                    ->setFailSafe(true)
-                    ->build(Transaction::TYPE_AUTH);
-                $payment->addTransactionCommentsToOrder($transaction, $message);
-
-                $payment->setParentTransactionId($api->getTransactionId());
-                $isAuthorizationCreated = true;
-            }
-            //close order transaction if needed
-            if ($payment->getShouldCloseParentTransaction()) {
-                $orderTransaction = $this->getOrderTransaction($payment);
-
-                if ($orderTransaction) {
-                    $orderTransaction->setIsClosed(true);
-                    $order->addRelatedObject($orderTransaction);
-                }
-            }
+        $transaction = $response['transaction'];
+        $outcome = empty($response['outcome']) ? array() : $response['outcome'];
+        $payment->setTransactionId($transaction['transactionId']);
+        if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
+            return $this;
         }
-
-        if (false === $this->_pro->capture($payment, $amount)) {
-            $this->_placeOrder($payment, $amount);
+        else {
+            if (!empty($outcome) && !empty($outcome['reasonMessage']))
+                throw new \Exception($outcome['reasonMessage']);
+            else
+                throw new \Exception(__('Payment capturing error.'));
         }
-
-        if ($isAuthorizationCreated && isset($transaction)) {
-            $transaction->setIsClosed(true);
-        }
-
-        return $this;
     }
 
     /**
@@ -542,7 +463,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-        $this->_pro->refund($payment, $amount);
+        $this->_nvp->callRefundTransaction($payment, $amount);
         return $this;
     }
 
@@ -557,85 +478,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->void($payment);
 
         return $this;
-    }
-
-    /**
-     * Place an order with authorization or capture action
-     *
-     * @param Payment $payment
-     * @param float $amount
-     * @return $this
-     */
-    protected function _placeOrder(Payment $payment, $amount)
-    {
-        $order = $payment->getOrder();
-
-        // prepare api call
-        $token = $payment->getAdditionalInformation(ExpressCheckout::PAYMENT_INFO_TRANSPORT_TOKEN);
-
-        $cart = $this->_cartFactory->create(['salesModel' => $order]);
-
-        $api = $this->getApi()->setToken(
-            $token
-        )->setPayerId(
-            $payment->getAdditionalInformation(ExpressCheckout::PAYMENT_INFO_TRANSPORT_PAYER_ID)
-        )->setAmount(
-            $amount
-        )->setPaymentAction(
-            $this->_pro->getConfig()->getValue('paymentAction')
-        )->setNotifyUrl(
-            $this->_urlBuilder->getUrl('paypal/ipn/')
-        )->setInvNum(
-            $order->getIncrementId()
-        )->setCurrencyCode(
-            $order->getBaseCurrencyCode()
-        )->setPaypalCart(
-            $cart
-        )->setIsLineItemsEnabled(
-            $this->_pro->getConfig()->getValue('lineItemsEnabled')
-        );
-        if ($order->getIsVirtual()) {
-            $api->setAddress($order->getBillingAddress())->setSuppressShipping(true);
-        } else {
-            $api->setAddress($order->getShippingAddress());
-            $api->setBillingAddress($order->getBillingAddress());
-        }
-
-        // call api and get details from it
-        $api->callDoExpressCheckoutPayment();
-
-        $this->_importToPayment($api, $payment);
-        return $this;
-    }
-
-    /**
-     * Import payment info to payment
-     *
-     * @param Nvp $api
-     * @param Payment $payment
-     * @return void
-     */
-    protected function _importToPayment($api, $payment)
-    {
-        $payment->setTransactionId(
-            $api->getTransactionId()
-        )->setIsTransactionClosed(
-            0
-        )->setAdditionalInformation(
-            ExpressCheckout::PAYMENT_INFO_TRANSPORT_REDIRECT,
-            $api->getRedirectRequired()
-        );
-
-        if ($api->getBillingAgreementId()) {
-            $payment->setBillingAgreementData(
-                [
-                    'billing_agreement_id' => $api->getBillingAgreementId(),
-                    'method_code' => \Pay360\Payments\Model\Config::METHOD_BILLING_AGREEMENT,
-                ]
-            );
-        }
-
-        $this->_pro->importPaymentInfo($api, $payment);
     }
 
     /**
@@ -685,37 +527,6 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         }
 
         return $this->_canCapture;
-    }
-
-    /**
-     * Call DoAuthorize
-     *
-     * @param int $amount
-     * @param \Magento\Framework\DataObject $payment
-     * @param string $parentTransactionId
-     * @return \Pay360\Payments\Model\Api\AbstractApi
-     */
-    protected function _callDoAuthorize($amount, $payment, $parentTransactionId)
-    {
-        $apiData = $this->_pro->getApi()->getData();
-        foreach ($apiData as $k => $v) {
-            if (is_object($v)) {
-                unset($apiData[$k]);
-            }
-        }
-        $this->_checkoutSession->setPaypalTransactionData($apiData);
-        $this->_pro->resetApi();
-        $api = $this->setAmount($amount)
-            ->setCurrencyCode($payment->getOrder()->getBaseCurrencyCode())
-            ->setTransactionId($parentTransactionId)
-            ->callDoAuthorization();
-
-        $payment->setAdditionalInformation(
-            $this->_authorizationCountKey,
-            $payment->getAdditionalInformation($this->_authorizationCountKey) + 1
-        );
-
-        return $api;
     }
 
     /**
@@ -781,6 +592,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * $body_json['processing']
      * $body_json['paymentMethod']
      * $body_json['customer']
+     *
+     * @param array $body_json
      */
     public function transactionNotificationCallback($body_json) {
         $transaction = $body_json['transaction'];
@@ -908,6 +721,75 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         }
         catch (Exception $e) {
             $this->_pay360Logger->write($e->getMessage());
+        }
+    }
+
+    /**
+     * process order, invoice after payment capture is done
+     */
+    public function afterCapture($order, $transaction) {
+        /* set the quote as inactive after back from pay360 */
+        $this->_checkoutSession->getQuote()->setIsActive(false)->save();
+
+        /* send confirmation email to customer */
+        $this->_orderSender->send($order);
+
+        /* verify status. make invoice and set order state to processing. add comments to Order */
+        if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
+            if (!$order->canInvoice()) {
+                $order->addStatusToHistory(
+                    $order->getStatus(), // keep order status/state
+                    __('Error in creating an invoice', true),
+                    $notified = true
+                );
+            }
+            else {
+                try {
+                    $order->getPayment()->setTransactionId($transaction['transactionId']);
+                    $invoice = $order->prepareInvoice();
+                    //set transaction id for invoice
+                    $invoice->setTransactionId($transaction['transactionId']);
+                    //set invoice state to paid
+                    $invoice->setState(\Magento\Sales\Model\Order\Invoice::STATE_PAID);
+                    $invoice->register();
+                    Mage::getModel('core/resource_transaction')
+                        ->addObject($invoice)
+                        ->addObject($order)
+                        ->save();
+                    /* set order status */
+                    $order->addStatusToHistory(
+                        $order->getStatus(),
+                        __('Captured amount of %s online. Transaction ID: "%s".', strip_tags($order->getBaseCurrency()->formatTxt($transaction['amount'])), strval($transaction['transactionId'])),
+                        false
+                    );
+
+                    $order->setState(
+                        \Magento\Sales\Model\Order::STATE_PROCESSING, true,
+                        __('Invoice #%s created', $invoice->getIncrementId()),
+                        $notified = true
+                    );
+                }
+                catch(Exception $e) {
+                    $this->_pay360Logger->write($e->getMessage());
+                }
+            }
+        }
+        else {
+            $order->addStatusToHistory(
+                $order->getStatus(),
+                __('Received IPN verification but was not successful'),
+                false
+            );
+        }
+        $ipnCustomerNotified = true;
+        if (!$order->getPay360IpnCustomerNotified()) {
+            $ipnCustomerNotified = false;
+            $order->setPay360IpnCustomerNotified(1);
+        }
+
+        $order->save();
+        if (!$ipnCustomerNotified) {
+            $this->_orderSender->send($order);
         }
     }
 }
