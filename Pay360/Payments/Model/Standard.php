@@ -479,8 +479,23 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-        $this->_nvp->callRefundTransaction($payment, $amount);
-        return $this;
+        $order = $payment->getOrder();
+
+        // apply pay360 refund logic here.
+        $response = $this->_nvp->callRefundTransaction($order, $amount);
+
+        $transaction = $response['transaction'];
+        $outcome = empty($response['outcome']) ? array() : $response['outcome'];
+        $payment->setTransactionId($transaction['transactionId']);
+        if ($transaction['type'] == \Pay360\Payments\Model\Config::PAYMENT_TYPE_REFUND && $transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
+            return $this;
+        }
+        else {
+            if (!empty($outcome) && !empty($outcome['reasonMessage']))
+                throw new \Exception($outcome['reasonMessage']);
+            else
+                throw new \Exception(__("Payment refunding error."));
+        }
     }
 
     /**
