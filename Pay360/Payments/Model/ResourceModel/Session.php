@@ -31,6 +31,6 @@ class Session extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      */
     protected function _construct()
     {
-        $this->_init('pay360_payments_session', 'session_id');
+        $this->_init('pay360_payments_session', 'id');
     }
 }

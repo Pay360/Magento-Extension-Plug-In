@@ -31,6 +31,6 @@ class Profile extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      */
     protected function _construct()
     {
-        $this->_init('pay360_payments_profile', 'profile_id');
+        $this->_init('pay360_payments_profile', 'id');
     }
 }

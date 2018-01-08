@@ -213,6 +213,16 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_orderSender;
 
     /**
+     * @var \Magento\Framework\DB\Transaction
+     */
+    protected $_transaction;
+
+    /**
+     * @var \Magento\Sales\Model\Service\InvoiceService
+     */
+    protected $_invoiceService;
+
+    /**
      * NOTE: dont change last 3 params, or error will be thrown
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
@@ -235,6 +245,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Pay360\Payments\Model\ProfileFactory $profileFactory,
      * @param \Pay360\Payments\Model\Api\Nvp $nvp,
      * @param \Pay360\Payments\Model\config $config,
+     * @param \Magento\Framework\DB\Transaction $transaction
+     * @param \Magento\Sales\Model\Service\InvoiceService $invoiceService
      * @param \Magento\Sales\Model\Order\Email\Sender\OrderSender
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
@@ -263,6 +275,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         \Pay360\Payments\Model\ProfileFactory $profileFactory,
         \Pay360\Payments\Model\Api\Nvp $nvp,
         \Pay360\Payments\Model\config $config,
+        \Magento\Framework\DB\Transaction $transaction,
+        \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
@@ -295,6 +309,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_nvp = $nvp;
         $this->_config = $config;
         $this->_orderSender = $orderSender;
+        $this->_transaction = $transaction;
+        $this->_invoiceService = $invoiceService;
     }
 
     /**
@@ -356,10 +372,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
 
         $formattedPrice = $order->getBaseCurrency()->formatTxt($amount);
         if ($payment->getIsTransactionPending()) {
-            $message = __('The ordering amount of %1 is pending approval on the payment gateway.', $formattedPrice);
+            $message = __("The ordering amount of %1 is pending approval on the payment gateway.", $formattedPrice);
             $state = \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW;
         } else {
-            $message = __('Ordered amount of %1', $formattedPrice);
+            $message = __("Ordered amount of %1", $formattedPrice);
         }
 
         $transaction = $this->transactionBuilder->setPayment($payment)
@@ -370,7 +386,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
 
         if ($payment->getIsTransactionPending()) {
             $message = __(
-                'We\'ll authorize the amount of %1 as soon as the payment gateway approves it.',
+                "We'll authorize the amount of %1 as soon as the payment gateway approves it.",
                 $formattedPrice
             );
             $state = \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW;
@@ -378,7 +394,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 $status = \Magento\Sales\Model\Order::STATUS_FRAUD;
             }
         } else {
-            $message = __('The authorized amount is %1.', $formattedPrice);
+            $message = __("The authorized amount is %1.", $formattedPrice);
         }
 
         $payment->resetTransactionAdditionalInfo();
@@ -449,7 +465,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
             if (!empty($outcome) && !empty($outcome['reasonMessage']))
                 throw new \Exception($outcome['reasonMessage']);
             else
-                throw new \Exception(__('Payment capturing error.'));
+                throw new \Exception(__("Payment capturing error."));
         }
     }
 
@@ -673,11 +689,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                     $newOrderStatus = $order->getStatus();
                 }
 
-                $order->setState(
-                    $newOrderStatus, false,
-                    __('Order '.$order->getIncrementId().' updated.') ,
-                    $notified = true
-                )->save();
+                $order->addStatusHistoryComment(__("Order #%1 updated.", $order->getId()));
+                $order->setState($newOrderStatus)->setStatus($newOrderStatus)->save();
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
@@ -737,37 +750,22 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         /* verify status. make invoice and set order state to processing. add comments to Order */
         if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
             if (!$order->canInvoice()) {
-                $order->addStatusToHistory(
-                    $order->getStatus(), // keep order status/state
-                    __('Error in creating an invoice', true),
-                    $notified = true
-                );
+                $order->addStatusHistoryComment(__("Error in creating an invoice"));
             }
             else {
                 try {
                     $order->getPayment()->setTransactionId($transaction['transactionId']);
-                    $invoice = $order->prepareInvoice();
+                    $invoice = $this->_invoiceService->prepareInvoice($order);;
                     //set transaction id for invoice
                     $invoice->setTransactionId($transaction['transactionId']);
                     //set invoice state to paid
                     $invoice->setState(\Magento\Sales\Model\Order\Invoice::STATE_PAID);
                     $invoice->register();
-                    Mage::getModel('core/resource_transaction')
-                        ->addObject($invoice)
-                        ->addObject($order)
-                        ->save();
+                    $this->_transaction->addObject($invoice)->addObject($order)->save();
                     /* set order status */
-                    $order->addStatusToHistory(
-                        $order->getStatus(),
-                        __('Captured amount of %s online. Transaction ID: "%s".', strip_tags($order->getBaseCurrency()->formatTxt($transaction['amount'])), strval($transaction['transactionId'])),
-                        false
-                    );
+                    $order->addStatusHistoryComment( __("Captured amount of %1 online. Transaction ID: '%2'.", strip_tags($order->getBaseCurrency()->formatTxt($transaction['amount'])), strval($transaction['transactionId'])) );
 
-                    $order->setState(
-                        \Magento\Sales\Model\Order::STATE_PROCESSING, true,
-                        __('Invoice #%s created', $invoice->getIncrementId()),
-                        $notified = true
-                    );
+                    $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
                 }
                 catch(Exception $e) {
                     $this->_pay360Logger->write($e->getMessage());
@@ -775,11 +773,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
             }
         }
         else {
-            $order->addStatusToHistory(
-                $order->getStatus(),
-                __('Received IPN verification but was not successful'),
-                false
-            );
+            $order->addStatusHistoryComment(__("Received IPN verification but was not successful"));
         }
         $ipnCustomerNotified = true;
         if (!$order->getPay360IpnCustomerNotified()) {
