@@ -37,6 +37,11 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     /**
      * @var string
      */
+    protected $_infoBlockType = \Pay360\Payments\Block\Payment\Info::class;
+
+    /**
+     * @var string
+     */
     protected $_code = self::CODE;
 
     /**
