@@ -730,10 +730,17 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     protected function saveProfile($body_json)
     {
+        $customer_id = null;
+        if (!empty($body_json['customer']) && !empty($body_json['customer']['merchantRef'])) {
+            $customer_id = $body_json['customer']['merchantRef'];
+        }
+        if (empty($customer_id)) {
+            // dont save profile if not a loggedin customer
+            return false;
+        }
         try {
             $card = $body_json['paymentMethod']['card'];
             $registered = $body_json['paymentMethod']['registered'];
-            $customer_id = $body_json['customer']['merchantRef'];
             $profile_id = $body_json['customer']['id'];
 
             $profile = $this->_profileFactory->create()->initProfileByMaskedPan($card['maskedPan'], $customer_id);
