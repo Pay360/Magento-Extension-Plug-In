@@ -249,7 +249,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Pay360\Payments\Model\TransactionFactory $transactionFactory,
      * @param \Pay360\Payments\Model\ProfileFactory $profileFactory,
      * @param \Pay360\Payments\Model\Api\Nvp $nvp,
-     * @param \Pay360\Payments\Model\config $config,
+     * @param \Pay360\Payments\Model\Config $config,
      * @param \Magento\Framework\DB\Transaction $transaction
      * @param \Magento\Sales\Model\Service\InvoiceService $invoiceService
      * @param \Magento\Sales\Model\Order\Email\Sender\OrderSender
@@ -279,7 +279,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         \Pay360\Payments\Model\TransactionFactory $transactionFactory,
         \Pay360\Payments\Model\ProfileFactory $profileFactory,
         \Pay360\Payments\Model\Api\Nvp $nvp,
-        \Pay360\Payments\Model\config $config,
+        \Pay360\Payments\Model\Config $config,
         \Magento\Framework\DB\Transaction $transaction,
         \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender,
