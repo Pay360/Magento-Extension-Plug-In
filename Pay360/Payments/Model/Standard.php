@@ -336,9 +336,9 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @return mixed
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getConfigData($key, $default=false, $storeId = null) {
-        if (!$this->hasData($key))
-		{
+    public function getConfigData($key, $default = false, $storeId = null)
+    {
+        if (!$this->hasData($key)) {
             if (null === $storeId) {
                 $storeId = $this->_storeManager->getStore()->getId();
             }
@@ -465,12 +465,12 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $payment->setTransactionId($transaction['transactionId']);
         if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
             return $this;
-        }
-        else {
-            if (!empty($outcome) && !empty($outcome['reasonMessage']))
+        } else {
+            if (!empty($outcome) && !empty($outcome['reasonMessage'])) {
                 throw new \Exception($outcome['reasonMessage']);
-            else
+            } else {
                 throw new \Exception(__("Payment capturing error."));
+            }
         }
     }
 
@@ -494,12 +494,12 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $payment->setTransactionId($transaction['transactionId']);
         if ($transaction['type'] == \Pay360\Payments\Model\Config::PAYMENT_TYPE_REFUND && $transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
             return $this;
-        }
-        else {
-            if (!empty($outcome) && !empty($outcome['reasonMessage']))
+        } else {
+            if (!empty($outcome) && !empty($outcome['reasonMessage'])) {
                 throw new \Exception($outcome['reasonMessage']);
-            else
+            } else {
                 throw new \Exception(__("Payment refunding error."));
+            }
         }
     }
 
@@ -631,14 +631,14 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      *
      * @param array $body_json
      */
-    public function transactionNotificationCallback($body_json) {
+    public function transactionNotificationCallback($body_json)
+    {
         $transaction = $body_json['transaction'];
 
         $order = $this->_orderFactory->create()->load($transaction['merchantRef']);
         if ($order->getId() && $order->getGrandTotal() == $transaction['amount'] && empty($transaction['deferred'])) {
             $this->afterCapture($order, $transaction);
-        }
-        else {
+        } else {
             $this->_pay360Logger->write("Amounts not equal or Payment deferred");
         }
 
@@ -646,10 +646,11 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * custom logic to check before authorization. we can verify and control payment flow here. 
+     * custom logic to check before authorization. we can verify and control payment flow here.
      * @param $body_json -> paymentMethod -> registered, card, billingAddress, paymentClass
      */
-    public function preAuthCallback($body_json) {
+    public function preAuthCallback($body_json)
+    {
         $response = array(
             'callbackResponse' => array(
                 'preAuthCallbackResponse' => array(
@@ -670,7 +671,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     /**
      * custom logic to check after authorization
      */
-    public function postAuthCallback($body_json) {
+    public function postAuthCallback($body_json)
+    {
         // Default response is cancel
         $response = array(
             'callbackResponse' => array(
@@ -714,8 +716,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->_pay360Logger->write($e->getMessage());
         }
 
@@ -758,8 +759,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 ->setCardHolderName($card['cardHolderName'])
                 ->setCardNickName($card['cardNickname'])
                 ->save();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->_pay360Logger->write($e->getMessage());
         }
     }
@@ -767,7 +767,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     /**
      * process order, invoice after payment capture is done
      */
-    public function afterCapture($order, $transaction) {
+    public function afterCapture($order, $transaction)
+    {
         /* set the quote as inactive after back from pay360 */
         $this->_checkoutSession->getQuote()->setIsActive(false)->save();
 
@@ -778,11 +779,11 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
             if (!$order->canInvoice()) {
                 $order->addStatusHistoryComment(__("Error in creating an invoice"));
-            }
-            else {
+            } else {
                 try {
                     $order->getPayment()->setTransactionId($transaction['transactionId']);
-                    $invoice = $this->_invoiceService->prepareInvoice($order);;
+                    $invoice = $this->_invoiceService->prepareInvoice($order);
+                    ;
                     //set transaction id for invoice
                     $invoice->setTransactionId($transaction['transactionId']);
                     //set invoice state to paid
@@ -790,16 +791,14 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                     $invoice->register();
                     $this->_transaction->addObject($invoice)->addObject($order)->save();
                     /* set order status */
-                    $order->addStatusHistoryComment( __("Captured amount of %1 online. Transaction ID: '%2'.", strip_tags($order->getBaseCurrency()->formatTxt($transaction['amount'])), strval($transaction['transactionId'])) );
+                    $order->addStatusHistoryComment(__("Captured amount of %1 online. Transaction ID: '%2'.", strip_tags($order->getBaseCurrency()->formatTxt($transaction['amount'])), strval($transaction['transactionId'])));
 
                     $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
-                }
-                catch(Exception $e) {
+                } catch (Exception $e) {
                     $this->_pay360Logger->write($e->getMessage());
                 }
             }
-        }
-        else {
+        } else {
             $order->addStatusHistoryComment(__("Received IPN verification but was not successful"));
         }
         $ipnCustomerNotified = true;

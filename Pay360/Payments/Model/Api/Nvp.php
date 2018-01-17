@@ -5,7 +5,8 @@ namespace Pay360\Payments\Model\Api;
 use Pay360\Payments\Model\Api\AbstractApi;
 use Pay360\Payments\Model\Config;
 
-class Nvp extends AbstractApi {
+class Nvp extends AbstractApi
+{
 
     protected $_checkoutSession;
 
@@ -56,17 +57,19 @@ class Nvp extends AbstractApi {
         $this->_transaction = $transaction;
     }
 
-    public function getPageStyle() {
+    public function getPageStyle()
+    {
         return $this->getConfigData('page_style');
     }
 
-    public function getOrder() { 
-        if(!isset($this->_orderIncrementId)) {
+    public function getOrder()
+    {
+        if (!isset($this->_orderIncrementId)) {
             $this->_orderIncrementId = $this->_checkoutSession->getLastRealOrderId();
         }
-        if(!$this->_lastOrder->getId()) {
+        if (!$this->_lastOrder->getId()) {
             $this->_lastOrder->loadByIncrementId($this->_orderIncrementId);
-        }  
+        }
 
         return $this->_lastOrder;
     }
@@ -83,7 +86,8 @@ class Nvp extends AbstractApi {
         );
     }
 
-    public function callDoPayment($returnUrl = null, $cancelUrl = null) {
+    public function callDoPayment($returnUrl = null, $cancelUrl = null)
+    {
         $nvpArr = array(
             'transaction' => array(
                 'merchantReference' => $this->_checkoutSession->getLastOrderId(),
@@ -144,8 +148,7 @@ class Nvp extends AbstractApi {
         if ($this->_config->getValue('payment/pay360/skin_code') || $this->_config->getValue('payment/pay360/custom_skin_code')) {
             if ($this->_config->getValue('payment/pay360/custom_skin_code')) {
                 $nvpArr['session']['skin'] = $this->_config->getValue('payment/pay360/custom_skin_code');
-            }
-            else {
+            } else {
                 $nvpArr['session']['skin'] = $this->_config->getValue('payment/pay360/skin_code');
             }
         }
@@ -156,7 +159,8 @@ class Nvp extends AbstractApi {
         return $this->call($nvpArr);
     }
 
-    public function callDoCapture($transaction, $order) {
+    public function callDoCapture($transaction, $order)
+    {
         $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360/installation_id'), Config::API_MAKE_CAPTURE);
         $url = str_replace('{transaction_id}', $transaction->getTransactionId(), $url);
         $this->setResourceEndpoint($url);
@@ -172,7 +176,8 @@ class Nvp extends AbstractApi {
         return $this->call($nvpArr);
     }
 
-    public function callGetTransactionDetails($transaction) {
+    public function callGetTransactionDetails($transaction)
+    {
         $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360/installation_id'), Config::API_GET_DETAIL);
         $url = str_replace('{transaction_id}', $transaction->getTransactionId(), $url);
         $this->setResourceEndpoint($url);
@@ -180,7 +185,8 @@ class Nvp extends AbstractApi {
         return $this->call();
     }
 
-    public function callRefundTransaction($order, $amount) {
+    public function callRefundTransaction($order, $amount)
+    {
         $transaction = $this->_transaction->load($order->getId(), 'merchant_ref');
         $nvpArr = array(
             'transaction' => array(
@@ -205,8 +211,8 @@ class Nvp extends AbstractApi {
      * @param $nvpArr array NVP params array
      * @return array|boolean an associtive array containing the response from the server or false in case of error.
      */
-    public function call($nvpArr = array()) {
+    public function call($nvpArr = array())
+    {
         return $this->request($nvpArr);
     }
-
 }

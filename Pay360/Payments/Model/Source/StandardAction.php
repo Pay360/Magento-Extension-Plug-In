@@ -21,7 +21,8 @@
 
 namespace Pay360\Payments\Model\Source;
 
-class StandardAction implements \Magento\Framework\Option\ArrayInterface {
+class StandardAction implements \Magento\Framework\Option\ArrayInterface
+{
 
     /**
      * @return array

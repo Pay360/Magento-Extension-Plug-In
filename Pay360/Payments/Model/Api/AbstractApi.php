@@ -115,7 +115,8 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      * $env : test/production
      * $type : api/hosted
      */
-    public function getComUrl() {
+    public function getComUrl()
+    {
         $type = strpos($this->getResourceEndpoint(), '/acceptor/rest') !== false ? 'api' : 'hosted';
         $resource = [
             'test' => [
@@ -138,7 +139,8 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
     /**
      * get current server name
      */
-    public function getServerName() {
+    public function getServerName()
+    {
         if (!$this->hasServerName()) {
             $this->setServerName($_SERVER['SERVER_NAME']);
         }
@@ -148,9 +150,9 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
     /**
      * get config data . if not available. set config data
      */
-    public function getConfigData($key, $default=false, $storeId = null) {
-        if (!$this->hasData($key))
-		{
+    public function getConfigData($key, $default = false, $storeId = null)
+    {
+        if (!$this->hasData($key)) {
             if ($storeId === null && $this->getPayment() instanceof Varien_Object) {
                 $storeId = $this->getPayment()->getOrder()->getStoreId();
             }
@@ -163,20 +165,21 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
         return $this->getData($key);
     }
 
-    public function getUseSession() {
+    public function getUseSession()
+    {
         if (!$this->hasData('use_session')) {
             $this->setUseSession(true);
         }
         return $this->getData('use_session');
     }
 
-    public function getSessionData($key, $default=false) {
+    public function getSessionData($key, $default = false)
+    {
         if (!$this->hasData($key)) {
             $value = $this->_pay360Session->getData($key);
             if ($this->_pay360Session->hasData($key)) {
                 $value = $this->_pay360Session->getData($key);
-            }
-			else {
+            } else {
                 $value = $default;
             }
             $this->setData($key, $value);
@@ -184,7 +187,8 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
         return $this->getData($key);
     }
 
-    public function setSessionData($key, $value) {
+    public function setSessionData($key, $value)
+    {
         if ($this->getUseSession()) {
             $this->_pay360Session->setData($key, $value);
         }
@@ -197,7 +201,8 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      *
      * @return string
      */
-    public function getApiErrorUrl() {
+    public function getApiErrorUrl()
+    {
         return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_error_url', 'pay360/gateway/error'), array('_secure' => true));
     }
 
@@ -206,7 +211,8 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      *
      * @return string
      */
-    public function getPreAuthCallBackUrl() {
+    public function getPreAuthCallBackUrl()
+    {
         return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_preauth_callback_url', 'pay360/gateway/preauthcallback'), array('_secure' => true));
     }
 
@@ -215,7 +221,8 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      *
      * @return string
      */
-    public function getPostAuthCallBackUrl() {
+    public function getPostAuthCallBackUrl()
+    {
         return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_postluth_callback_url', 'pay360/gateway/postauthcallback'), array('_secure' => true));
     }
 
@@ -224,7 +231,8 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      *
      * @return string
      */
-    public function getTransactionNotificationUrl() {
+    public function getTransactionNotificationUrl()
+    {
         return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_transaction_notification_url', 'pay360/gateway/transactionnotification'), array('_secure' => true));
     }
 
@@ -233,11 +241,11 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      *
      * @return string
      */
-    public function getReturnUrl() {
+    public function getReturnUrl()
+    {
         if ($this->_config->getValue('payment/pay360/payment_type') == \Pay360\Payments\Model\HppProvider::CODE) {
             $url = $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_return_url', 'pay360/gateway/gatewayreturn'), array('_secure' => true));
-        }
-        else {
+        } else {
             $url = $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_return_url', 'pay360/gateway/gatewayreturnhpf'), array('_secure' => true));
         }
         return $url;
@@ -248,11 +256,11 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      *
      * @return string
      */
-    public function getCancelUrl() {
+    public function getCancelUrl()
+    {
         if ($this->_config->getValue('payment/pay360/payment_type') == \Pay360\Payments\Model\HppProvider::CODE) {
             $url = $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_cancel_url', 'pay360/gateway/cancel'), array('_secure' => true));
-        }
-        else {
+        } else {
             $url = $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_cancel_url', 'pay360/gateway/cancelhpf'), array('_secure' => true));
         }
         return $url;
@@ -263,62 +271,73 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      *
      * @return string
      */
-    public function getFailedPaymentUrl() {
+    public function getFailedPaymentUrl()
+    {
         return $this->_config->getUrlBuilder()->getUrl($this->getConfigData('api_cancel_url', 'pay360/gateway/failedpayment'), array('_secure' => true));
     }
 
     /**
      * transaction Id
      */
-    public function getTransactionId() {
+    public function getTransactionId()
+    {
         return $this->getSessionData('transaction_id');
     }
 
-    public function setTransactionId($data) {
+    public function setTransactionId($data)
+    {
         return $this->setSessionData('transaction_id', $data);
     }
 
     /**
      * Authorization Id
      */
-    public function getAuthorizationId() {
+    public function getAuthorizationId()
+    {
         return $this->getSessionData('authorization_id');
     }
 
-    public function setAuthorizationId($data) {
+    public function setAuthorizationId($data)
+    {
         return $this->setSessionData('authorization_id', $data);
     }
 
     /**
      * Payer Id
      */
-    public function getPayerId() {
+    public function getPayerId()
+    {
         return $this->getSessionData('payer_id');
     }
 
-    public function setPayerId($data) {
+    public function setPayerId($data)
+    {
         return $this->setSessionData('payer_id', $data);
     }
 
     /**
      * Complete type code (Complete, NotComplete)
      */
-    public function getCompleteType() {
+    public function getCompleteType()
+    {
         return $this->getSessionData('complete_type');
     }
 
-    public function setCompleteType($data) {
+    public function setCompleteType($data)
+    {
         return $this->setSessionData('complete_type', $data);
     }
 
     /**
      * Has to be one of the following values: Sale or Order or Authorization
      */
-    public function getPaymentType() {
+    public function getPaymentType()
+    {
         return $this->getSessionData('payment_type');
     }
 
-    public function setPaymentType($data) {
+    public function setPaymentType($data)
+    {
         return $this->setSessionData('payment_type', $data);
     }
 
@@ -329,53 +348,63 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
      *
      * @return float
      */
-    public function getAmount() {
+    public function getAmount()
+    {
         return $this->getSessionData('amount');
     }
 
-    public function setAmount($data) {
-	    $data = sprintf('%.2f', $data);
+    public function setAmount($data)
+    {
+        $data = sprintf('%.2f', $data);
         return $this->setSessionData('amount', $data);
     }
 
     /**
      * currency Code
      */
-    public function getCurrencyCode() {
+    public function getCurrencyCode()
+    {
         return $this->getSessionData('currency_code', $this->_storeManager->getStore()->getCurrentCurrency()->getCode());
     }
 
-    public function setCurrencyCode($data) {
+    public function setCurrencyCode($data)
+    {
         return $this->setSessionData('currency_code', $data);
     }
 
     /**
      * Refund type ('Full', 'Partial')
      */
-    public function getRefundType() {
+    public function getRefundType()
+    {
         return $this->getSessionData('refund_type');
     }
 
-    public function setRefundType($data) {
+    public function setRefundType($data)
+    {
         return $this->setSessionData('refund_type', $data);
     }
 
     /**
      * Error
      */
-    public function getError() {
+    public function getError()
+    {
         return $this->getSessionData('error');
     }
 
-    public function setError($data) {
+    public function setError($data)
+    {
         return $this->setSessionData('error', $data);
     }
 
-    public function unsError() {
+    public function unsError()
+    {
         return $this->setSessionData('error', null);
     }
 
-    public function getCcTypeName($ccType) {
+    public function getCcTypeName($ccType)
+    {
         $types = array(
             'AE'=> __('Amex'),
             'VI'=> __('Visa'),
@@ -389,7 +418,8 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
     /**
      * setResourceEndpoint need to done from child class
      */
-    public function getApiEndpoint() {
+    public function getApiEndpoint()
+    {
         if (!$this->getData('api_endpoint')) {
             $url = $this->getComUrl() . $this->getResourceEndpoint();
             $this->setData('api_endpoint', $url);
@@ -400,7 +430,8 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
     /**
      * perform request to Pay360 payment gateway
      */
-    protected function request($nvpArr) {
+    protected function request($nvpArr)
+    {
         $this->_curlClient->setTimeout(Config::DEFAULT_TIMEOUT);
         $username = $this->_config->getValue('payment/pay360/api_user');
         $password = $this->_config->getValue('payment/pay360/api_password');
@@ -415,8 +446,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
             if ($response && $data = $this->_jsonDecoder->decode($response)) {
                 return $data;
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->setError(array( 'type'=>'CURL', 'message'=>$e->getMessage()));
             $this->_logger->write(array( 'type'=>'CURL', 'message'=>$e->getMessage()));
             $this->setRedirectUrl($this->getApiErrorUrl());

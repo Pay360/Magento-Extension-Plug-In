@@ -7,7 +7,7 @@ use Magento\Payment\Helper\Data as PaymentHelper;
 
 class HpfProvider implements ConfigProviderInterface
 {
-    CONST CODE = 'hpf';
+    const CODE = 'hpf';
     /**
      * @var PaymentHelper
      */

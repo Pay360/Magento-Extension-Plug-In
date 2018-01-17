@@ -21,7 +21,8 @@
 
 namespace Pay360\Payments\Model\Source;
 
-class CcType extends \Magento\Payment\Model\Source\Cctype {
+class CcType extends \Magento\Payment\Model\Source\Cctype
+{
 
     public function getAllowedTypes()
     {

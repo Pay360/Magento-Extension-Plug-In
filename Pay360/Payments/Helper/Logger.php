@@ -17,15 +17,14 @@ class Logger
     const LOG_FILE = 'var/log/pay360debug.log';
     const DEBUG_CONFIG = 'payment/pay360/test';
 
-    protected $_enabled = false; 
+    protected $_enabled = false;
     protected $_config;
     protected $_psrLogger;
 
     function __construct(
         LoggerInterface $psrLogger,
         Config $config
-    )
-    {
+    ) {
         $this->_config = $config;
         $this->_psrLogger = $psrLogger;
         $this->_enabled = $this->_config->getValue(self::DEBUG_CONFIG);
@@ -50,13 +49,11 @@ class Logger
                 // debug $content
                 if (is_array($content)) {
                     $this->_psrLogger->log(\Monolog\Logger::DEBUG, json_encode($content));
-                }
-                else {
+                } else {
                     $content = strval($content);
                     $this->_psrLogger->log(\Monolog\Logger::DEBUG, "String : {$content}");
                 }
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 $this->_psrLogger->log(\Monolog\Logger::DEBUG, "Error : ".$e->getMessage());
             }
             $this->_psrLogger->popHandler();

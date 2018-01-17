@@ -64,7 +64,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @param Integer $increment_id
      */
-    protected function _loadValidOrder($increment_id = null) {
+    protected function _loadValidOrder($increment_id = null)
+    {
         if (!$increment_id) {
             return false;
         }
@@ -82,7 +83,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @param Integer $last_order_id
      */
-    public function reinitCart($last_order_id) {
+    public function reinitCart($last_order_id)
+    {
         $order = $this->_loadValidOrder($last_order_id);
         if (!$order) {
             return;
@@ -92,8 +94,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         foreach ($items as $item) {
             try {
                 $this->cart->addOrderItem($item);
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 $this->messageManager->addNoticeMessage(__("Cannot add item '{$item->getName()}' to the shopping cart."));
                 return false;
             }
@@ -105,12 +106,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * get template file for review section of onepage page
      */
-    public function reviewhpf() {
+    public function reviewhpf()
+    {
         if ($this->_checkoutSession->getQuote()->getPayment()->getMethodInstance()->getCode() == \Pay360\Payments\Model\Standard::CODE
             && $this->scopeConfig->getValue('payment/pay360/payment_type')  == \Pay360\Payments\Model\Source\Paymenttype::TYPE_HPF) {
             return 'pay360/review/info.phtml';
-        }
-        else {
+        } else {
             return 'checkout/onepage/review/info.phtml';
         }
     }

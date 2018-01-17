@@ -36,7 +36,8 @@ class SkinCodes implements \Magento\Framework\Option\ArrayInterface
         ];
     }
     
-    public function toArray() {
+    public function toArray()
+    {
         return [
             '1' => __('1'),
             '2' => __('2'),

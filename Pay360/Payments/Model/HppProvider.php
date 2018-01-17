@@ -10,7 +10,7 @@ use Magento\Framework\UrlInterface;
  */
 class HppProvider implements ConfigProviderInterface
 {
-    CONST CODE = 'hpp';
+    const CODE = 'hpp';
     /**
      * @var CurrentCustomer
      */

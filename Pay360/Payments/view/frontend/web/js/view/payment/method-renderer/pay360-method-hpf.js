@@ -1,4 +1,4 @@
-define( [ 'jquery', 'Magento_Checkout/js/view/payment/default', 'mage/url', 'Magento_Paypal/js/model/iframe', 'Magento_Checkout/js/model/full-screen-loader' ], function ($, Component, url, iframe, fullScreenLoader) {
+define([ 'jquery', 'Magento_Checkout/js/view/payment/default', 'mage/url', 'Magento_Paypal/js/model/iframe', 'Magento_Checkout/js/model/full-screen-loader' ], function ($, Component, url, iframe, fullScreenLoader) {
     var checkoutConfig = window.checkoutConfig.payment;
     'use strict';
     return Component.extend(
@@ -16,7 +16,7 @@ define( [ 'jquery', 'Magento_Checkout/js/view/payment/default', 'mage/url', 'Mag
                 return checkoutConfig.instructions[this.item.method];
             },
 
-            paymentReady: function() {
+            paymentReady: function () {
                 return true;
             },
 
@@ -64,5 +64,6 @@ define( [ 'jquery', 'Magento_Checkout/js/view/payment/default', 'mage/url', 'Mag
             iframeLoaded: function () {
                 fullScreenLoader.stopLoader();
             }
-        });
+        }
+    );
 });

@@ -1,4 +1,4 @@
-define( [ 'jquery', 'Magento_Checkout/js/view/payment/default', 'mage/url' ], function ($, Component, url) {
+define([ 'jquery', 'Magento_Checkout/js/view/payment/default', 'mage/url' ], function ($, Component, url) {
     var checkoutConfig = window.checkoutConfig.payment;
     'use strict';
     return Component.extend(
