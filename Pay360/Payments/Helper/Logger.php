@@ -21,7 +21,7 @@ class Logger
     protected $_config;
     protected $_psrLogger;
 
-    function __construct(
+    public function __construct(
         LoggerInterface $psrLogger,
         Config $config
     ) {

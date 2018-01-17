@@ -716,7 +716,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->_pay360Logger->write($e->getMessage());
         }
 
@@ -759,7 +759,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 ->setCardHolderName($card['cardHolderName'])
                 ->setCardNickName($card['cardNickname'])
                 ->save();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->_pay360Logger->write($e->getMessage());
         }
     }
@@ -794,7 +794,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                     $order->addStatusHistoryComment(__("Captured amount of %1 online. Transaction ID: '%2'.", strip_tags($order->getBaseCurrency()->formatTxt($transaction['amount'])), strval($transaction['transactionId'])));
 
                     $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     $this->_pay360Logger->write($e->getMessage());
                 }
             }
@@ -807,9 +807,9 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
             $order->setPay360IpnCustomerNotified(1);
         }
 
-        $order->save();
         if (!$ipnCustomerNotified) {
             $this->_orderSender->send($order);
         }
+        return $order->save();
     }
 }
