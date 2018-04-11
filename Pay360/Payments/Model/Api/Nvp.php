@@ -136,7 +136,7 @@ class Nvp extends AbstractApi
         }
         // customer information for both guest and logged in customer
         $nvpArr['customer']['details'] = array(
-            'name' => $this->_lastOrder->getCustomerName(),
+            'name' => $this->getOrder()->getBillingAddress()->getFirstName().' '.$this->getOrder()->getBillingAddress()->getLastName(),
             'address' => $this->getAddressDetails($this->getOrder()->getBillingAddress()),
             'telephone' => $this->getOrder()->getBillingAddress()->getTelephone(),
             'emailAddress' => $this->getOrder()->getCustomerEmail(),

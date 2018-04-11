@@ -1,4 +1,11 @@
-define([ 'jquery', 'Magento_Checkout/js/view/payment/default', 'mage/url', 'Magento_Paypal/js/model/iframe', 'Magento_Checkout/js/model/full-screen-loader' ], function ($, Component, url, iframe, fullScreenLoader) {
+define([ 'jquery',
+  'Magento_Checkout/js/view/payment/default',
+  'mage/url',
+  'Magento_Paypal/js/model/iframe',
+  'Magento_Checkout/js/model/full-screen-loader',
+  'Magento_Customer/js/customer-data'
+  ],
+  function ($, Component, url, iframe, fullScreenLoader) {
     var checkoutConfig = window.checkoutConfig.payment;
     'use strict';
     return Component.extend(
@@ -13,7 +20,7 @@ define([ 'jquery', 'Magento_Checkout/js/view/payment/default', 'mage/url', 'Mage
                 return checkoutConfig.image[this.item.method];
             },
             getInstructions: function () {
-                return checkoutConfig.instructions[this.item.method];
+                return checkoutConfig[this.item.method].description;
             },
 
             paymentReady: function () {

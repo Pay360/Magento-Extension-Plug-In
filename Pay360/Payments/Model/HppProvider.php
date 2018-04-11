@@ -49,6 +49,7 @@ class HppProvider implements ConfigProviderInterface
             'payment' => [
                 'pay360' => [
                     'method' => 'Hosted Payment Page',
+                    'description' => $this->scopeConfig->getValue('payment/pay360/description'),
                     'actionUrl' => $this->getFrameActionUrl(),
                     'isActive' => $this->scopeConfig->getValue('payment/pay360/payment_type') == self::CODE
                 ]
