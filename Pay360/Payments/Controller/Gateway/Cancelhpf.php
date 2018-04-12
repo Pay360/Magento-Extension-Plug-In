@@ -31,7 +31,7 @@ class Cancelhpf extends GatewayAbstract
     public function execute()
     {
         $this->messageManager->addNoticeMessage(__('Payment Cancel!'));
-        // reinit cart when redirect failed
+        // reinit cart when payment canceled
         $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
 
         return $this->_resultPageFactory->create();

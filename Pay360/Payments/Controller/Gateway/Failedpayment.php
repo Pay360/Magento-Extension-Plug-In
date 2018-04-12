@@ -30,6 +30,10 @@ class Failedpayment extends GatewayAbstract
      */
     public function execute()
     {
-        return $this->resultPageFactory->create();
+        $this->messageManager->addNoticeMessage(__('Payment Failed!'));
+        // reinit cart when redirect failed
+        $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
+
+        return $this->_resultRedirect->setUrl('/checkout/cart/');
     }
 }
