@@ -38,4 +38,9 @@ class Hpfredirect extends \Magento\Framework\View\Element\Template
     {
         return $this->_config->getUrlBuilder()->getUrl('checkout/onepage/success', array('_secure' => true));
     }
+
+    public function getCancelRedirectUrl()
+    {
+        return $this->_config->getUrlBuilder()->getUrl('checkout/cart/index', array('_secure' => true));
+    }
 }
