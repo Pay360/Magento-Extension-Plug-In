@@ -76,12 +76,10 @@ class Info
         $order = $payment->getOrder();
         $transaction = $this->_transactionFactory->create()->load($order->getId(), 'merchant_ref');
 
-        $processed_data = array();
-        foreach($transaction->getData() as $key=>$value) {
-            if ($key == 'id') continue;
-            $processed_data[__($key)] = $value;
-        }
-
-        return $processed_data;
+		$data = $transaction->getData();
+		if (isset($data['id'])) {
+			unset($data['id']);
+		}
+        return $data;
     }
 }
