@@ -40,6 +40,7 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
     protected $_pay360Helper;
     protected $_pay360Logger;
     protected $_pay360SessionFactory;
+    protected $_transactionFactory;
     protected $_pay360Model;
 
     /**
@@ -73,7 +74,8 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
         \Pay360\Payments\Model\Standard $pay360Model,
         \Magento\Framework\Json\EncoderInterface $jsonEncoder,
         \Magento\Framework\Json\DecoderInterface $jsonDecoder,
-        \Pay360\Payments\Model\SessionFactory $sessionFactory
+        \Pay360\Payments\Model\SessionFactory $sessionFactory,
+        \Pay360\Payments\Model\TransactionFactory $transactionFactory
     ) {
         parent::__construct($context);
         $this->_resultPageFactory = $resultPageFactory;
@@ -88,6 +90,7 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
         $this->_jsonEncoder = $jsonEncoder;
         $this->_jsonDecoder = $jsonDecoder;
         $this->_pay360SessionFactory = $sessionFactory;
+        $this->_transactionFactory = $transactionFactory;
     }
 
     /**

@@ -25,6 +25,7 @@ use Pay360\Payments\Api\Data\TransactionInterface;
 
 class Transaction extends \Magento\Framework\Model\AbstractModel implements TransactionInterface
 {
+    const STATUS_FAILED = 'FAILED';
 
     /**
      * @return void
@@ -70,5 +71,16 @@ class Transaction extends \Magento\Framework\Model\AbstractModel implements Tran
     public function setId($id)
     {
         return $this->setData(self::ID, $id);
+    }
+
+    /**
+     * load transaction by merchant_ref (order entity_id)
+     * @param $entity_id
+     *
+     * @return $this
+     */
+    public function loadByMerchantRef($entity_id)
+    {
+        return $this->getCollection()->addFieldToFilter('merchant_ref', $entity_id)->setOrder('id', 'DESC')->getFirstItem();
     }
 }

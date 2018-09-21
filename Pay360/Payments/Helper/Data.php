@@ -10,6 +10,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $_checkoutSession;
     protected $_orderConfig;
     protected $_orderFactory;
+    protected $_orderManagement;
     protected $cart;
 
     /**
@@ -31,6 +32,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Sales\Model\Order\Config $orderConfig,
         CustomerCart $cart,
         \Magento\Framework\Message\ManagerInterface $messageManager,
+        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
         \Magento\Sales\Model\OrderFactory $orderFactory
     ) {
         parent::__construct($context);
@@ -40,6 +42,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->_orderFactory = $orderFactory;
         $this->cart = $cart;
         $this->messageManager = $messageManager;
+        $this->_orderManagement = $orderManagement;
     }
 
     /**
@@ -51,7 +54,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $customerId = $this->_customerSession->getCustomerId();
         $availableStates = $this->_orderConfig->getVisibleOnFrontStatuses();
-        if ($order->getId() && $order->getCustomerId() && ($order->getCustomerId() == $customerId)
+        if ($order->getId() && ($order->getCustomerId() == $customerId)
             && in_array($order->getState(), $availableStates, $strict = true)
             ) {
             return true;
@@ -89,6 +92,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         if (!$order) {
             return;
         }
+        // cancel before reinit
+        $this->_orderManagement->cancel($order->getId());
 
         $items = $order->getItemsCollection();
         foreach ($items as $item) {

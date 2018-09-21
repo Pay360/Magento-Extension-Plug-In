@@ -33,7 +33,7 @@ class Redirect extends GatewayAbstract
         if ($this->_checkoutSession->getLastRealOrderId()) {
             $response = $this->_nvp->callDoPayment();
             $pay360session = $this->_pay360SessionFactory->create()->load($response['sessionId'], 'session_id');
-            $pay360session->setOrderId($this->_checkoutSession->getLastRealOrderId())
+            $pay360session->setOrderId($this->_checkoutSession->getLastOrderId()) // last_order_id is entity_id 
                 ->setSessionId($response['sessionId'])
                 ->setSessionDate(date("Y-m-d H:i:s"))
                 ->setStatus($response['status'])
