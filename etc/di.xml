@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+	<preference for="Pay360\Payments\Api\ProfileRepositoryInterface" type="Pay360\Payments\Model\ProfileRepository"/>
+	<preference for="Pay360\Payments\Api\Data\ProfileInterface" type="Pay360\Payments\Model\Data\Profile"/>
+	<preference for="Pay360\Payments\Api\SessionRepositoryInterface" type="Pay360\Payments\Model\SessionRepository"/>
+	<preference for="Pay360\Payments\Api\Data\SessionInterface" type="Pay360\Payments\Model\Data\Session"/>
+	<preference for="Pay360\Payments\Api\TransactionRepositoryInterface" type="Pay360\Payments\Model\TransactionRepository"/>
+	<preference for="Pay360\Payments\Api\Data\TransactionInterface" type="Pay360\Payments\Model\Data\Transaction"/>
+
+    <!--override quote data model-->
+
+    <!--plugins-->
+	<type name="Magento\Quote\Api\CartRepositoryInterface">
+		<plugin name="Pay360_Payments_Plugin_Magento_Quote_Api_CartRepositoryInterface" type="Pay360\Payments\Plugin\Magento\Quote\Api\CartRepositoryInterface" sortOrder="10" disabled="false"/>
+	</type>
+	<type name="Magento\Quote\Api\PaymentMethodManagementInterface">
+		<plugin name="Pay360_Payments_Plugin_Magento_Quote_Api_PaymentMethodManagementInterface" type="Pay360\Payments\Plugin\Magento\Quote\Api\PaymentMethodManagementInterface" sortOrder="10" disabled="false"/>
+	</type>
+
+    <!--logger-->
+    <virtualType name="Pay360\Payments\Logger\Handler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+            <argument name="fileName" xsi:type="string">/var/log/pay360_debug.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Pay360\Payments\Logger\Logger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">Pay360 Payment Logger</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Pay360\Payments\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Pay360\Payments\Helper\Logger">
+        <arguments>
+            <argument name="logger" xsi:type="object">Pay360\Payments\Logger\Logger</argument>
+        </arguments>
+    </type>
+</config>

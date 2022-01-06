@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="pay360_payments_profile">
+        <column xsi:type="int" name="id" nullable="false" identity="true" padding="10" unsigned="true" comment="Increment Magento Profile Id"/>
+        <column xsi:type="int" name="customer_id" nullable="false" padding="10" unsigned="true" comment="Customer Id"/>
+        <column xsi:type="boolean" name="registered" nullable="true" default="false" comment="Registered customer"/>
+        <column xsi:type="varchar" name="profile_id" nullable="true" length="15" default="NULL" comment="Pay360 Profile Id"/>
+        <column xsi:type="varchar" name="card_token" nullable="true" length="15" default="NULL" comment="Card Token"/>
+        <column xsi:type="varchar" name="card_type" nullable="true" length="20" default="NULL" comment="Card Type"/>
+        <column xsi:type="varchar" name="card_usage_type" nullable="true" length="20" default="NULL" comment="Card Usage Type"/>
+        <column xsi:type="varchar" name="card_scheme" nullable="true" length="20" default="NULL" comment="Card Scheme"/>
+        <column xsi:type="varchar" name="card_category" nullable="true" length="20" default="NULL" comment="Card Category"/>
+        <column xsi:type="varchar" name="card_holder_name" nullable="true" length="250" default="NULL" comment="Card Holder Name"/>
+        <column xsi:type="varchar" name="card_nick_name" nullable="true" length="150" default="NULL" comment="Card Nick Name"/>
+        <column xsi:type="varchar" name="masked_pan" nullable="true" length="20" default="NULL" comment="Masked PAN"/>
+        <column xsi:type="varchar" name="expiry_date" nullable="true" length="6" default="NULL" comment="Expiry Date"/>
+        <column xsi:type="varchar" name="issuer" nullable="true" length="30" default="NULL" comment="Issuer"/>
+        <column xsi:type="varchar" name="issuer_country" nullable="true" length="30" default="NULL" comment="Issuer Country"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="PAY360_PROFILE_ID">
+            <column name="profile_id"/>
+        </constraint>
+        <index referenceId="PAY360_CARD_TOKEN" indexType="btree">
+            <column name="card_token"/>
+        </index>
+        <index referenceId="MAGENTO_CUSTOMER_ID" indexType="btree">
+            <column name="customer_id"/>
+        </index>
+    </table>
+    <table name="pay360_payments_session">
+        <column xsi:type="int" name="id" nullable="false" identity="true" padding="10" unsigned="true" comment="Increment Id for Pay360 Session"/>
+        <column xsi:type="int" name="order_id" nullable="false" padding="10" unsigned="true" comment="Order Id"/>
+        <column xsi:type="varchar" name="session_id" length="30" nullable="false" comment="Session Id"/>
+        <column xsi:type="timestamp" name="session_date" nullable="false" on_update="false" default="CURRENT_TIMESTAMP" comment="Session Date"/>
+        <column xsi:type="timestamp" name="last_modified" nullable="false" on_update="true" default="CURRENT_TIMESTAMP" comment="Last Modified"/>
+        <column xsi:type="varchar" name="status" nullable="true" default="NULL" length="15" comment="Session Status"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <index referenceId="MAGENTO_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+        <index referenceId="PAY360_SESSION_ID" indexType="btree">
+            <column name="session_id"/>
+        </index>
+    </table>
+    <table name="pay360_payments_transaction">
+        <column xsi:type="int" name="id" nullable="false" identity="true" padding="10" unsigned="true" comment="Increment Id for Pay360 Transactions"/>
+        <column xsi:type="varchar" name="transaction_id" nullable="false" length="30" comment="Pay360 Transaction Id"/>
+        <column xsi:type="boolean" name="deferred" nullable="false" default="false" comment="Pay360 Transaction Id"/>
+        <column xsi:type="varchar" name="merchant_ref" nullable="false" length="15" comment="Merchant Reference"/>
+        <column xsi:type="varchar" name="merchant_description" nullable="false" length="255" comment="Merchant Description"/>
+        <column xsi:type="varchar" name="type" nullable="false" length="20" comment="Transaction Type"/>
+        <column xsi:type="decimal" name="amount" nullable="false" scale="4" precision="12" comment="Transaction Amount"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="15" comment="Transaction Status"/>
+        <column xsi:type="varchar" name="currency" nullable="false" length="10" comment="Transaction Currency"/>
+        <column xsi:type="timestamp" name="transaction_time" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Transaction Time"/>
+        <column xsi:type="timestamp" name="received_time" nullable="false" on_update="true" default="CURRENT_TIMESTAMP" comment="Received Time"/>
+        <column xsi:type="varchar" name="channel" nullable="false" length="20" comment="Transaction Channel"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <index referenceId="PAY360_TRANSACTION_ID" indexType="btree">
+            <column name="transaction_id"/>
+        </index>
+    </table>
+</schema>

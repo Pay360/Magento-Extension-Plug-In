@@ -3,9 +3,14 @@
 namespace Pay360\Payments\Helper;
 
 use Magento\Checkout\Model\Cart as CustomerCart;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
+    const PAY360_DEBUG = 'payment/pay360/debug';
+    const PAY360_PAYMENT_TYPE = 'payment/pay360/payment_type';
+
     protected $_customerSession;
     protected $_checkoutSession;
     protected $_orderConfig;
@@ -114,10 +119,20 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function reviewhpf()
     {
         if ($this->_checkoutSession->getQuote()->getPayment()->getMethodInstance()->getCode() == \Pay360\Payments\Model\Standard::CODE
-            && $this->scopeConfig->getValue('payment/pay360/payment_type')  == \Pay360\Payments\Model\Source\Paymenttype::TYPE_HPF) {
+            && $this->scopeConfig->getValue(self::PAY360_PAYMENT_TYPE, ScopeInterface::SCOPE_STORE)  == \Pay360\Payments\Model\Source\Paymenttype::TYPE_HPF) {
             return 'pay360/review/info.phtml';
         } else {
             return 'checkout/onepage/review/info.phtml';
         }
+    }
+
+    /**
+     * check payment debug enabled
+     *
+     * @return bool
+     */
+    public function isDebugOn()
+    {
+        return (bool) $this->scopeConfig->getValue(self::PAY360_DEBUG, ScopeInterface::SCOPE_STORE);
     }
 }
