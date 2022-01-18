@@ -24,6 +24,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $messageManager;
 
     /**
+     * @var \Magento\Framework\Pricing\PriceCurrencyInterface
+     */
+    protected $_priceHelper;
+
+    /**
      * Constructor
      *
      * @param \Magento\Framework\App\Action\Context  $context
@@ -38,7 +43,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         CustomerCart $cart,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Sales\Api\OrderManagementInterface $orderManagement,
-        \Magento\Sales\Model\OrderFactory $orderFactory
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Magento\Framework\Pricing\PriceCurrencyInterface $priceHelper
     ) {
         parent::__construct($context);
         $this->_customerSession = $customerSession;
@@ -48,6 +54,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->cart = $cart;
         $this->messageManager = $messageManager;
         $this->_orderManagement = $orderManagement;
+        $this->_priceHelper = $priceHelper;
     }
 
     /**
@@ -134,5 +141,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function isDebugOn()
     {
         return (bool) $this->scopeConfig->getValue(self::PAY360_DEBUG, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * format currency with symbol and no container
+     *
+     * @param string | number
+     * @return string
+     */
+    public function formatCurrency($amount)
+    {
+        return $this->_priceHelper->convertAndFormat($amount, false);
     }
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  * Magento 2 Payment module from Pay360
- * Copyright (C) 2017  Pay360 by Capita
+ * Copyright (C) 2022  Pay360 by Capita
  *
  * This file is part of Pay360/Payments.
  *
@@ -38,7 +38,7 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
     protected $_checkoutSession;
     protected $_nvp;
     protected $_pay360Helper;
-    protected $_pay360Logger;
+    protected $_logger;
     protected $_pay360SessionFactory;
     protected $_transactionFactory;
     protected $_pay360Model;
@@ -85,7 +85,7 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
         $this->_checkoutSession = $checkoutSession;
         $this->_nvp = $nvp;
         $this->_pay360Helper = $pay360Helper;
-        $this->_pay360Logger = $pay360Logger;
+        $this->_logger = $pay360Logger;
         $this->_pay360Model = $pay360Model;
         $this->_jsonEncoder = $jsonEncoder;
         $this->_jsonDecoder = $jsonDecoder;

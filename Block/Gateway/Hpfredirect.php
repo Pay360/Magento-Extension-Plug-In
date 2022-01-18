@@ -1,7 +1,7 @@
 <?php
 /**
  * Magento 2 Payment module from Pay360
- * Copyright (C) 2017  Pay360 by Capita
+ * Copyright (C) 2022  Pay360 by Capita
  *
  * This file is part of Pay360/Payments.
  *
@@ -32,6 +32,22 @@ class Hpfredirect extends \Magento\Framework\View\Element\Template
     ) {
         parent::__construct($context, $data);
         $this->_config = $config;
+    }
+
+    /**
+     * retrieve HPF iframe width
+     * @return int
+     */
+    public function getiFrameWidth()
+    {
+    }
+
+    /**
+     * retrieve HPF iframe height
+     * @return int
+     */
+    public function getiFrameHeight()
+    {
     }
 
     public function getRedirectUrl()

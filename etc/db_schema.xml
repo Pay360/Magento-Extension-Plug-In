@@ -52,7 +52,7 @@
         <column xsi:type="boolean" name="deferred" nullable="false" default="false" comment="Pay360 Transaction Id"/>
         <column xsi:type="varchar" name="merchant_ref" nullable="false" length="15" comment="Merchant Reference"/>
         <column xsi:type="varchar" name="merchant_description" nullable="false" length="255" comment="Merchant Description"/>
-        <column xsi:type="varchar" name="type" nullable="false" length="20" comment="Transaction Type"/>
+        <column xsi:type="varchar" name="transaction_type" nullable="false" length="20" comment="Transaction Type"/>
         <column xsi:type="decimal" name="amount" nullable="false" scale="4" precision="12" comment="Transaction Amount"/>
         <column xsi:type="varchar" name="status" nullable="false" length="15" comment="Transaction Status"/>
         <column xsi:type="varchar" name="currency" nullable="false" length="10" comment="Transaction Currency"/>
@@ -65,5 +65,11 @@
         <index referenceId="PAY360_TRANSACTION_ID" indexType="btree">
             <column name="transaction_id"/>
         </index>
+    </table>
+    <table name="quote_payment" resource="checkout" engine="innodb" comment="Sales Flat Quote Payment">
+        <column xsi:type="varchar" name="pay360_transaction_id" length="50" nullable="false" comment="The unique Pay360 Transaction ID for this quote payment."/>
+    </table>
+    <table name="sales_order_payment" resource="sales" engine="innodb" comment="Sales Flat Order">
+        <column xsi:type="varchar" name="pay360_transaction_id" length="50" nullable="false" comment="The unique Pay360 Transaction ID for this order payment."/>
     </table>
 </schema>

@@ -1,7 +1,7 @@
 <?php
 /**
  * Magento 2 Payment module from Pay360
- * Copyright (C) 2017  Pay360 by Capita
+ * Copyright (C) 2022  Pay360 by Capita
  *
  * This file is part of Pay360/Payments.
  *
@@ -34,7 +34,7 @@ class Transactionnotification extends GatewayAbstract
             $resultJson = $this->_resultJsonFactory->create();
             return $resultJson->setData($this->_pay360Model->transactionNotificationCallback($this->_jsonDecoder->decode($this->getRawBody())));
         } catch (\Exception $e) {
-            $this->_pay360Logger->write($e->getMessage());
+            $this->_logger->write($e);
         }
     }
 }

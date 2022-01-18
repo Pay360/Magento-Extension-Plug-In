@@ -1,7 +1,7 @@
 <?php
 /**
  * Magento 2 Payment module from Pay360
- * Copyright (C) 2017  Pay360 by Capita
+ * Copyright (C) 2022  Pay360 by Capita
  *
  * This file is part of Pay360/Payments.
  *
@@ -185,7 +185,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     /**
      * @var \Pay360\Payments\Helper\Logger
      */
-    protected $_pay360Logger;
+    protected $_logger;
 
     /**
      * @var \Magento\Sales\Model\OrderFactory
@@ -307,7 +307,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->transactionBuilder = $transactionBuilder;
         $this->_jsonEncoder = $jsonEncoder;
         $this->_jsonDecoder = $jsonDecoder;
-        $this->_pay360Logger = $pay360Logger;
+        $this->_logger = $pay360Logger;
         $this->_orderFactory = $orderFactory;
         $this->_transactionFactory = $transactionFactory;
         $this->_profileFactory = $profileFactory;
@@ -570,10 +570,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         if ($order->getId() && $order->getGrandTotal() == $transaction['amount'] && empty($transaction['deferred'])) {
             $this->afterCapture($order, $transaction);
         } else {
-            $this->_pay360Logger->write("Amounts not equal or Payment deferred");
+            $this->_logger->write("Amounts not equal or Payment deferred");
         }
 
-        $this->_pay360Logger->write(['body_json' => $body_json]);
+        $this->_logger->write(['body_json' => $body_json]);
     }
 
     /**
@@ -595,7 +595,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
             )
         );
 
-        $this->_pay360Logger->write($response);
+        $this->_logger->write($response);
         return $response;
     }
 
@@ -648,10 +648,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
         } catch (\Exception $e) {
-            $this->_pay360Logger->write($e->getMessage());
+            $this->_logger->logException($e);
         }
 
-        $this->_pay360Logger->write(['body_json' => $body_json]);
+        $this->_logger->write(['body_json' => $body_json]);
         return $response;
     }
 
@@ -691,7 +691,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 ->setCardNickName($card['cardNickname'])
                 ->save();
         } catch (\Exception $e) {
-            $this->_pay360Logger->write($e->getMessage());
+            $this->_logger->logException($e);
         }
     }
 
@@ -726,7 +726,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
 
                     $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
                 } catch (\Exception $e) {
-                    $this->_pay360Logger->write($e->getMessage());
+                    $this->_logger->logException($e);
                 }
             }
         } else {

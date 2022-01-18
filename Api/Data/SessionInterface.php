@@ -1,7 +1,7 @@
 <?php
 /**
  * Magento 2 Payment module from Pay360
- * Copyright (C) 2017  Pay360 by Capita
+ * Copyright (C) 2022  Pay360 by Capita
  *
  * This file is part of Pay360/Payments.
  *
@@ -24,9 +24,25 @@ namespace Pay360\Payments\Api\Data;
 interface SessionInterface
 {
 
-    const SESSION_ID = 'session_id';
     const ID = 'id';
+    const SESSION_ID = 'session_id';
+    const SESSION_DATE = 'session_date';
+    const ORDER_ID = 'order_id';
+    const LAST_MODIFIED = 'last_modified';
+    const STATUS = 'status';
 
+    /**
+     * Get id
+     * @return string|null
+     */
+    public function getId();
+
+    /**
+     * Set id
+     * @param string $id
+     * @return \Pay360\Payments\Api\Data\SessionInterface
+     */
+    public function setId($id);
 
     /**
      * Get session_id
@@ -42,15 +58,69 @@ interface SessionInterface
     public function setSessionId($sessionId);
 
     /**
-     * Get id
-     * @return string|null
+     * Get session_date
+     * @return datetime|null
      */
-    public function getId();
+    public function getSessionDate();
 
     /**
-     * Set id
-     * @param string $id
+     * Set session_date
+     * @param string $session_date
      * @return \Pay360\Payments\Api\Data\SessionInterface
      */
-    public function setId($id);
+    public function setSessionDate($session_date);
+
+    /**
+     * Get order_id
+     * @return string|null
+     */
+    public function getOrderId();
+
+    /**
+     * Set order_id
+     * @param string $order_id
+     * @return \Pay360\Payments\Api\Data\SessionInterface
+     */
+    public function setOrderId($order_id);
+
+    /**
+     * Get last_modified
+     * @return datetime|null
+     */
+    public function getLastModified();
+
+    /**
+     * Set last_modified
+     * @param string $last_modified
+     * @return \Pay360\Payments\Api\Data\SessionInterface
+     */
+    public function setLastModified($last_modified);
+
+    /**
+     * Get status
+     * @return string|null
+     */
+    public function getStatus();
+
+    /**
+     * Set status
+     * @param string $status
+     * @return \Pay360\Payments\Api\Data\SessionInterface
+     */
+    public function setStatus($status);
+
+    /**
+     * Retrieve existing extension attributes object or create a new one.
+     * @return \Pay360\Magento\Api\Data\SessionExtensionInterface|null
+     */
+    public function getExtensionAttributes();
+
+    /**
+     * Set an extension attributes object.
+     * @param \Pay360\Magento\Api\Data\SessionExtensionInterface $extensionAttributes
+     * @return $this
+     */
+    public function setExtensionAttributes(
+        \Pay360\Magento\Api\Data\SessionExtensionInterface $extensionAttributes
+    );
 }

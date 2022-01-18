@@ -42,6 +42,14 @@ define([ 'jquery',
                 return this.paymentReady();
             },
 
+            getiFrameWidth: function () {
+                return '80%';
+            },
+
+            getiFrameHeight: function () {
+                return '410';
+            },
+
             /**
              * Get action url for payment method iframe.
              * @returns {String}

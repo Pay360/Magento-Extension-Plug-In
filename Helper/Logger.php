@@ -32,12 +32,12 @@ class Logger extends AbstractHelper
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
-        LoggerInterface $logger,
-        Data $pay360Helper
+        Data $pay360Helper,
+        LoggerInterface $logger
     ) {
         parent::__construct($context);
-        $this->logger = $logger;
         $this->pay360Helper = $pay360Helper;
+        $this->logger = $logger;
     }
 
     /**
@@ -46,10 +46,10 @@ class Logger extends AbstractHelper
      */
     public function write($content)
     {
-        try  {
-            throw new \Exception($content);
+        try {
+            $this->logMixed($content);
         } catch (Exception $e) {
-            $this->logException($e);
+            // do nothing
         }
         
     }

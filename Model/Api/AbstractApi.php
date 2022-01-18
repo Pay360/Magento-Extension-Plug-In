@@ -448,7 +448,7 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
             }
         } catch (\Exception $e) {
             $this->setError(array( 'type'=>'CURL', 'message'=>$e->getMessage()));
-            $this->_logger->write(array( 'type'=>'CURL', 'message'=>$e->getMessage()));
+            $this->_logger->logException($e);
             $this->setRedirectUrl($this->getApiErrorUrl());
         }
 

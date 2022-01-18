@@ -46,14 +46,12 @@
                 <div><!-- ko i18n: 'Please do not refresh the page until you complete payment.' --><!-- /ko --></div>
             </div>
             <!-- ko if: isPaymentReady() -->
-            <iframe data-bind="attr: {id: 'hpf-iframe', src: getActionUrl()}, event: {load: iframeLoaded}"
+            <iframe data-bind="attr: {id: 'hpf-iframe', src: getActionUrl(), width: getiFrameWidth(), height: getiFrameHeight()}, event: {load: iframeLoaded}"
                     data-container="pay360-iframe"
                     class="pay360 iframe"
                     scrolling="auto"
                     frameborder="0"
                     border="0"
-                    height="610"
-                    width="100%"
                     >
             </iframe>
             <!-- /ko -->

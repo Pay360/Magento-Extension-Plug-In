@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
 	<event name="callbackUpdateOrder">
-		<observer instance="Pay360\Payments\Observer\CallbackUpdateOrder" name="pay360_payments_observer_callbackupdateorder_callbackUpdateOrder"/>
+		<observer name="pay360_payments_observer_callbackupdateorder_callbackUpdateOrder" instance="Pay360\Payments\Observer\CallbackUpdateOrder" />
 	</event>
 </config>
