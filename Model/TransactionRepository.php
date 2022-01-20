@@ -25,6 +25,7 @@ use Pay360\Payments\Api\TransactionRepositoryInterface;
 use Pay360\Payments\Api\Data\TransactionSearchResultsInterfaceFactory;
 use Pay360\Payments\Api\Data\TransactionInterfaceFactory;
 use Magento\Framework\Api\DataObjectHelper;
+use Magento\Framework\Api\ExtensibleDataObjectConverter;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -33,25 +34,57 @@ use Magento\Framework\Reflection\DataObjectProcessor;
 use Pay360\Payments\Model\ResourceModel\Transaction as ResourceTransaction;
 use Pay360\Payments\Model\ResourceModel\Transaction\CollectionFactory as TransactionCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 
 class TransactionRepository implements transactionRepositoryInterface
 {
 
+    /**
+     * @var ResourceTransaction
+     */
     protected $resource;
 
+    /**
+     * @var TransactionFactory
+     */
     protected $transactionFactory;
 
+    /**
+     * @var transactionCollectionFactory
+     */
     protected $transactionCollectionFactory;
 
+    /**
+     * @var searchResultsFactory
+     */
     protected $searchResultsFactory;
 
+    /**
+     * @var dataObjectHelper
+     */
     protected $dataObjectHelper;
 
+    /**
+     * @var dataObjectProcessor
+     */
     protected $dataObjectProcessor;
 
+    /**
+     * @var dataTransactionFactory
+     */
     protected $dataTransactionFactory;
 
+    /**
+     * @var StoreManagerInterface
+     */
     private $storeManager;
+
+    protected $extensibleDataObjectConverter;
+
+    /**
+     * @var searchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
 
 
     /**
@@ -63,6 +96,8 @@ class TransactionRepository implements transactionRepositoryInterface
      * @param DataObjectHelper $dataObjectHelper
      * @param DataObjectProcessor $dataObjectProcessor
      * @param StoreManagerInterface $storeManager
+     * @param ExtensibleDataObjectConverter $extensibleDataObjectConverter
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      */
     public function __construct(
         ResourceTransaction $resource,
@@ -72,7 +107,9 @@ class TransactionRepository implements transactionRepositoryInterface
         TransactionSearchResultsInterfaceFactory $searchResultsFactory,
         DataObjectHelper $dataObjectHelper,
         DataObjectProcessor $dataObjectProcessor,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        ExtensibleDataObjectConverter $extensibleDataObjectConverter,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->resource = $resource;
         $this->transactionFactory = $transactionFactory;
@@ -82,6 +119,8 @@ class TransactionRepository implements transactionRepositoryInterface
         $this->dataTransactionFactory = $dataTransactionFactory;
         $this->dataObjectProcessor = $dataObjectProcessor;
         $this->storeManager = $storeManager;
+        $this->extensibleDataObjectConverter = $extensibleDataObjectConverter;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -94,8 +133,17 @@ class TransactionRepository implements transactionRepositoryInterface
             $storeId = $this->storeManager->getStore()->getId();
             $transaction->setStoreId($storeId);
         } */
+
+        $transactionData = $this->extensibleDataObjectConverter->toNestedArray(
+            $transaction,
+            [],
+            \Pay360\Payments\Api\Data\TransactionInterface::class
+        );
+        
+        $transactionModel = $this->transactionFactory->create()->setData($transactionData);
+
         try {
-            $transaction->getResource()->save($transaction);
+            $this->resource->save($transactionModel);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(__(
                 'Could not save the transaction: %1',
@@ -111,11 +159,49 @@ class TransactionRepository implements transactionRepositoryInterface
     public function getById($transactionId)
     {
         $transaction = $this->transactionFactory->create();
-        $transaction->getResource()->load($transaction, $transactionId);
+        $this->resource->load($transaction, $transactionId);
         if (!$transaction->getId()) {
             throw new NoSuchEntityException(__('Transaction with id "%1" does not exist.', $transactionId));
         }
-        return $transaction;
+        return $transaction->getDataModel();
+    }
+
+    /**
+     * load transaction by merchant_ref (order entity_id)
+     * @param $entity_id
+     *
+     * @return $this
+     */
+    public function loadByMerchantRef($merchant_ref)
+    {
+        $transactionSearchCriteria = $this->searchCriteriaBuilder->addFilter('merchant_ref', $merchant_ref, 'eq')->create();
+        $transactionSearchResults = $this->getList($transactionSearchCriteria);
+
+        if ($transactionSearchResults->getTotalCount() > 0) {
+            list($item) = $transactionSearchResults->getItems();
+            return $item;
+        }
+
+        return null;
+    }
+
+    /**
+     * load transaction by transaction_id (pay360 transaction_id)
+     * @param $transaction_id
+     *
+     * @return $this
+     */
+    public function loadByTransactionId($transaction_id)
+    {
+        $transactionSearchCriteria = $this->searchCriteriaBuilder->addFilter('transaction_id', $transaction_id, 'eq')->create();
+        $transactionSearchResults = $this->getList($transactionSearchCriteria);
+
+        if ($transactionSearchResults->getTotalCount() > 0) {
+            list($item) = $transactionSearchResults->getItems();
+            return $item;
+        }
+
+        return null;
     }
 
     /**

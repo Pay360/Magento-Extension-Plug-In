@@ -5,16 +5,15 @@
  */
 declare(strict_types=1);
 
-namespace Pay360\Magento\Model\Data;
+namespace Pay360\Payments\Model\Data;
 
-use Pay360\Magento\Api\Data\TransactionInterface;
+use Pay360\Payments\Api\Data\TransactionInterface;
 
 class Transaction extends \Magento\Framework\Api\AbstractExtensibleObject implements TransactionInterface
 {
 
     /**
-     * Get transaction_id
-     * @return string|null
+     * {@inheritdoc}
      */
     public function getTransactionId()
     {
@@ -22,9 +21,7 @@ class Transaction extends \Magento\Framework\Api\AbstractExtensibleObject implem
     }
 
     /**
-     * Set transaction_id
-     * @param string $transactionId
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * {@inheritdoc}
      */
     public function setTransactionId($transactionId)
     {
@@ -219,7 +216,7 @@ class Transaction extends \Magento\Framework\Api\AbstractExtensibleObject implem
      * {@inheritdoc}
      */
     public function setExtensionAttributes(
-        \Pay360\Magento\Api\Data\TransactionExtensionInterface $extensionAttributes
+        \Pay360\Payments\Api\Data\TransactionExtensionInterface $extensionAttributes
     ) {
         return $this->_setExtensionAttributes($extensionAttributes);
     }

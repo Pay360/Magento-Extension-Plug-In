@@ -21,7 +21,7 @@
 
 namespace Pay360\Payments\Api\Data;
 
-interface SessionInterface
+interface SessionInterface extends \Magento\Framework\Api\ExtensibleDataInterface
 {
 
     const ID = 'id';
@@ -111,16 +111,16 @@ interface SessionInterface
 
     /**
      * Retrieve existing extension attributes object or create a new one.
-     * @return \Pay360\Magento\Api\Data\SessionExtensionInterface|null
+     * @return \Pay360\Payments\Api\Data\SessionExtensionInterface|null
      */
     public function getExtensionAttributes();
 
     /**
      * Set an extension attributes object.
-     * @param \Pay360\Magento\Api\Data\SessionExtensionInterface $extensionAttributes
+     * @param \Pay360\Payments\Api\Data\SessionExtensionInterface $extensionAttributes
      * @return $this
      */
     public function setExtensionAttributes(
-        \Pay360\Magento\Api\Data\SessionExtensionInterface $extensionAttributes
+        \Pay360\Payments\Api\Data\SessionExtensionInterface $extensionAttributes
     );
 }

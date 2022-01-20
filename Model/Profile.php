@@ -18,58 +18,62 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+declare(strict_types=1);
 
 namespace Pay360\Payments\Model;
 
 use Pay360\Payments\Api\Data\ProfileInterface;
+use Pay360\Payments\Api\Data\ProfileInterfaceFactory;
+use Magento\Framework\Api\DataObjectHelper;
 
-class Profile extends \Magento\Framework\Model\AbstractModel implements ProfileInterface
+class Profile extends \Magento\Framework\Model\AbstractModel
 {
 
+    protected $profileDataFactory;
+
+    protected $dataObjectHelper;
+
+    protected $_eventPrefix = 'pay360_profile';
+
     /**
-     * @return void
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Framework\Registry $registry
+     * @param ProfileInterfaceFactory $profileDataFactory
+     * @param DataObjectHelper $dataObjectHelper
+     * @param \Pay360\Payments\Model\ResourceModel\Profile $resource
+     * @param \Pay360\Payments\Model\ResourceModel\Profile\Collection $resourceCollection
+     * @param array $data
      */
-    protected function _construct()
-    {
-        $this->_init('Pay360\Payments\Model\ResourceModel\Profile');
+    public function __construct(
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        ProfileInterfaceFactory $profileDataFactory,
+        DataObjectHelper $dataObjectHelper,
+        \Pay360\Payments\Model\ResourceModel\Profile $resource,
+        \Pay360\Payments\Model\ResourceModel\Profile\Collection $resourceCollection,
+        array $data = []
+    ) {
+        $this->profileDataFactory = $profileDataFactory;
+        $this->dataObjectHelper = $dataObjectHelper;
+        parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
 
     /**
-     * Get profile_id
-     * @return string
+     * Retrieve profile model with profile data
+     * @return ProfileInterface
      */
-    public function getProfileId()
+    public function getDataModel()
     {
-        return $this->getData(self::PROFILE_ID);
-    }
-
-    /**
-     * Set profile_id
-     * @param string $profileId
-     * @return \Pay360\Payments\Api\Data\ProfileInterface
-     */
-    public function setProfileId($profileId)
-    {
-        return $this->setData(self::PROFILE_ID, $profileId);
-    }
-
-    /**
-     * Get id
-     * @return string
-     */
-    public function getId()
-    {
-        return $this->getData(self::ID);
-    }
-
-    /**
-     * Set id
-     * @param string $id
-     * @return \Pay360\Payments\Api\Data\ProfileInterface
-     */
-    public function setId($id)
-    {
-        return $this->setData(self::ID, $id);
+        $profileData = $this->getData();
+        
+        $profileDataObject = $this->profileDataFactory->create();
+        $this->dataObjectHelper->populateWithArray(
+            $profileDataObject,
+            $profileData,
+            ProfileInterface::class
+        );
+        
+        return $profileDataObject;
     }
 
     /**
@@ -91,3 +95,4 @@ class Profile extends \Magento\Framework\Model\AbstractModel implements ProfileI
         return $profile;
     }
 }
+

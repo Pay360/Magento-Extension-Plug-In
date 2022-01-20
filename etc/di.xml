@@ -2,10 +2,13 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Pay360\Payments\Api\ProfileRepositoryInterface" type="Pay360\Payments\Model\ProfileRepository"/>
     <preference for="Pay360\Payments\Api\Data\ProfileInterface" type="Pay360\Payments\Model\Data\Profile"/>
+	<preference for="Pay360\Payments\Api\Data\ProfileSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
     <preference for="Pay360\Payments\Api\SessionRepositoryInterface" type="Pay360\Payments\Model\SessionRepository"/>
     <preference for="Pay360\Payments\Api\Data\SessionInterface" type="Pay360\Payments\Model\Data\Session"/>
+	<preference for="Pay360\Payments\Api\Data\SessionSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
     <preference for="Pay360\Payments\Api\TransactionRepositoryInterface" type="Pay360\Payments\Model\TransactionRepository"/>
     <preference for="Pay360\Payments\Api\Data\TransactionInterface" type="Pay360\Payments\Model\Data\Transaction"/>
+	<preference for="Pay360\Payments\Api\Data\TransactionSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
 
     <!--override quote data model-->
 

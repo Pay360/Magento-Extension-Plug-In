@@ -30,7 +30,8 @@ class Gatewayreturn extends GatewayAbstract
      */
     public function execute()
     {
-        $transaction = $this->_transactionFactory->create()->loadByMerchantRef($this->_checkoutSession->getLastOrderId());
+        $lastOrderId = $this->_checkoutSession->getLastOrderId();
+        $transaction = $this->_transactionRepository->loadByMerchantRef($lastOrderId);
         if ($transaction && $transaction->getStatus() == \Pay360\Payments\Model\Transaction::STATUS_FAILED)
         {
             return $this->_resultRedirect->setPath('pay360/gateway/failedpayment', array('_secure'=>true));

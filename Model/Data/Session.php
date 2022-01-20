@@ -5,30 +5,27 @@
  */
 declare(strict_types=1);
 
-namespace Pay360\Magento\Model\Data;
+namespace Pay360\Payments\Model\Data;
 
-use Pay360\Magento\Api\Data\SessionInterface;
+use Pay360\Payments\Api\Data\SessionInterface;
 
 class Session extends \Magento\Framework\Api\AbstractExtensibleObject implements SessionInterface
 {
 
     /**
-     * Get transaction_id
-     * @return string|null
+     * {@inheritdoc}
      */
     public function getSessionId()
     {
-        return $this->_get(self::TRANSACTION_ID);
+        return $this->_get(self::SESSION_ID);
     }
 
     /**
-     * Set transaction_id
-     * @param string $transactionId
-     * @return \Pay360\Magento\Api\Data\SessionInterface
+     * {@inheritdoc}
      */
-    public function setSessionId($transactionId)
+    public function setSessionId($session_id)
     {
-        return $this->setData(self::TRANSACTION_ID, $transactionId);
+        return $this->setData(self::SESSION_ID, $session_id);
     }
 
     /**
@@ -123,7 +120,7 @@ class Session extends \Magento\Framework\Api\AbstractExtensibleObject implements
      * {@inheritdoc}
      */
     public function setExtensionAttributes(
-        \Pay360\Magento\Api\Data\SessionExtensionInterface $extensionAttributes
+        \Pay360\Payments\Api\Data\SessionExtensionInterface $extensionAttributes
     ) {
         return $this->_setExtensionAttributes($extensionAttributes);
     }

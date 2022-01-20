@@ -25,6 +25,7 @@ use Pay360\Payments\Api\SessionRepositoryInterface;
 use Pay360\Payments\Api\Data\SessionSearchResultsInterfaceFactory;
 use Pay360\Payments\Api\Data\SessionInterfaceFactory;
 use Magento\Framework\Api\DataObjectHelper;
+use Magento\Framework\Api\ExtensibleDataObjectConverter;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -33,6 +34,7 @@ use Magento\Framework\Reflection\DataObjectProcessor;
 use Pay360\Payments\Model\ResourceModel\Session as ResourceSession;
 use Pay360\Payments\Model\ResourceModel\Session\CollectionFactory as SessionCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 
 class SessionRepository implements sessionRepositoryInterface
 {
@@ -53,6 +55,13 @@ class SessionRepository implements sessionRepositoryInterface
 
     private $storeManager;
 
+    protected $extensibleDataObjectConverter;
+
+    /**
+     * @var searchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
+
 
     /**
      * @param ResourceSession $resource
@@ -63,6 +72,8 @@ class SessionRepository implements sessionRepositoryInterface
      * @param DataObjectHelper $dataObjectHelper
      * @param DataObjectProcessor $dataObjectProcessor
      * @param StoreManagerInterface $storeManager
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param ExtensibleDataObjectConverter $extensibleDataObjectConverter
      */
     public function __construct(
         ResourceSession $resource,
@@ -72,7 +83,9 @@ class SessionRepository implements sessionRepositoryInterface
         SessionSearchResultsInterfaceFactory $searchResultsFactory,
         DataObjectHelper $dataObjectHelper,
         DataObjectProcessor $dataObjectProcessor,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        ExtensibleDataObjectConverter $extensibleDataObjectConverter
     ) {
         $this->resource = $resource;
         $this->sessionFactory = $sessionFactory;
@@ -82,6 +95,8 @@ class SessionRepository implements sessionRepositoryInterface
         $this->dataSessionFactory = $dataSessionFactory;
         $this->dataObjectProcessor = $dataObjectProcessor;
         $this->storeManager = $storeManager;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->extensibleDataObjectConverter = $extensibleDataObjectConverter;
     }
 
     /**
@@ -94,8 +109,17 @@ class SessionRepository implements sessionRepositoryInterface
             $storeId = $this->storeManager->getStore()->getId();
             $session->setStoreId($storeId);
         } */
+
+        $sessionData = $this->extensibleDataObjectConverter->toNestedArray(
+            $session,
+            [],
+            \Pay360\Payments\Api\Data\SessionInterface::class
+        );
+        
+        $sessionModel = $this->sessionFactory->create()->setData($sessionData);
+
         try {
-            $session->getResource()->save($session);
+            $this->resource->save($sessionModel);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(__(
                 'Could not save the session: %1',
@@ -116,6 +140,25 @@ class SessionRepository implements sessionRepositoryInterface
             throw new NoSuchEntityException(__('Session with id "%1" does not exist.', $sessionId));
         }
         return $session;
+    }
+
+    /**
+     * load transaction by session_id 
+     * @param $session_id
+     *
+     * @return $this
+     */
+    public function loadBySessionId($session_id)
+    {
+        $transactionSearchCriteria = $this->searchCriteriaBuilder->addFilter('session_id', $session_id, 'eq')->create();
+        $transactionSearchResults = $this->getList($transactionSearchCriteria);
+
+        if ($transactionSearchResults->getTotalCount() > 0) {
+            list($item) = $transactionSearchResults->getItems();
+            return $item;
+        }
+
+        return null;
     }
 
     /**

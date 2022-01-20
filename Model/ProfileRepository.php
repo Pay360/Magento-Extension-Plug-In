@@ -25,6 +25,7 @@ use Pay360\Payments\Api\ProfileRepositoryInterface;
 use Pay360\Payments\Api\Data\ProfileSearchResultsInterfaceFactory;
 use Pay360\Payments\Api\Data\ProfileInterfaceFactory;
 use Magento\Framework\Api\DataObjectHelper;
+use Magento\Framework\Api\ExtensibleDataObjectConverter;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -51,6 +52,8 @@ class ProfileRepository implements profileRepositoryInterface
 
     protected $dataProfileFactory;
 
+    protected $extensibleDataObjectConverter;
+
     private $storeManager;
 
 
@@ -62,6 +65,7 @@ class ProfileRepository implements profileRepositoryInterface
      * @param ProfileSearchResultsInterfaceFactory $searchResultsFactory
      * @param DataObjectHelper $dataObjectHelper
      * @param DataObjectProcessor $dataObjectProcessor
+     * @param ExtensibleDataObjectConverter $extensibleDataObjectConverter
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
@@ -72,6 +76,7 @@ class ProfileRepository implements profileRepositoryInterface
         ProfileSearchResultsInterfaceFactory $searchResultsFactory,
         DataObjectHelper $dataObjectHelper,
         DataObjectProcessor $dataObjectProcessor,
+        ExtensibleDataObjectConverter $extensibleDataObjectConverter,
         StoreManagerInterface $storeManager
     ) {
         $this->resource = $resource;
@@ -82,6 +87,7 @@ class ProfileRepository implements profileRepositoryInterface
         $this->dataProfileFactory = $dataProfileFactory;
         $this->dataObjectProcessor = $dataObjectProcessor;
         $this->storeManager = $storeManager;
+        $this->extensibleDataObjectConverter = $extensibleDataObjectConverter;
     }
 
     /**
@@ -94,8 +100,17 @@ class ProfileRepository implements profileRepositoryInterface
             $storeId = $this->storeManager->getStore()->getId();
             $profile->setStoreId($storeId);
         } */
+
+        $profileData = $this->extensibleDataObjectConverter->toNestedArray(
+            $profile,
+            [],
+            \Pay360\Payments\Api\Data\ProfileInterface::class
+        );
+        
+        $profileModel = $this->profileFactory->create()->setData($profileData);
+
         try {
-            $profile->getResource()->save($profile);
+            $this->resource->save($profileModel);
         } catch (\Exception $exception) {
             throw new CouldNotSaveException(__(
                 'Could not save the profile: %1',

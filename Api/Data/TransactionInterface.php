@@ -21,7 +21,7 @@
 
 namespace Pay360\Payments\Api\Data;
 
-interface TransactionInterface
+interface TransactionInterface extends \Magento\Framework\Api\ExtensibleDataInterface
 {
     const ID = 'id';
     const TRANSACTION_ID = 'transaction_id';
@@ -45,7 +45,7 @@ interface TransactionInterface
     /**
      * Set transaction_id
      * @param string $transactionId
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setTransactionId($transactionId);
 
@@ -58,7 +58,7 @@ interface TransactionInterface
     /**
      * Set id
      * @param string $id
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setId($id);
 
@@ -71,7 +71,7 @@ interface TransactionInterface
     /**
      * Set deferred
      * @param boolean $deferred
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setDeferred($deferred);
 
@@ -84,7 +84,7 @@ interface TransactionInterface
     /**
      * Set merchant_ref
      * @param string $buyer_id
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setMerchantRef($merchant_ref);
 
@@ -97,7 +97,7 @@ interface TransactionInterface
     /**
      * Set merchant_description
      * @param string $merchant_description
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setMerchantDescription($merchant_description);
 
@@ -110,7 +110,7 @@ interface TransactionInterface
     /**
      * Set transaction_type
      * @param string $transaction_type
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setTransactionType($type);
 
@@ -123,7 +123,7 @@ interface TransactionInterface
     /**
      * Set amount
      * @param integer $amount
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setAmount($amount);
 
@@ -136,7 +136,7 @@ interface TransactionInterface
     /**
      * Set status
      * @param integer $status
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setStatus($status);
 
@@ -149,7 +149,7 @@ interface TransactionInterface
     /**
      * Set currency
      * @param string $currency
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setCurrency($currency);
 
@@ -162,7 +162,7 @@ interface TransactionInterface
     /**
      * Set transaction_time
      * @param string $transaction_time
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setTransactionTime($transaction_time);
 
@@ -175,7 +175,7 @@ interface TransactionInterface
     /**
      * Set received_time
      * @param string $received_time
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setReceivedTime($received_time);
 
@@ -188,22 +188,22 @@ interface TransactionInterface
     /**
      * Set channel
      * @param string $channel
-     * @return \Pay360\Magento\Api\Data\TransactionInterface
+     * @return \Pay360\Payments\Api\Data\TransactionInterface
      */
     public function setChannel($channel);
 
     /**
      * Retrieve existing extension attributes object or create a new one.
-     * @return \Pay360\Magento\Api\Data\TransactionExtensionInterface|null
+     * @return \Pay360\Payments\Api\Data\TransactionExtensionInterface|null
      */
     public function getExtensionAttributes();
 
     /**
      * Set an extension attributes object.
-     * @param \Pay360\Magento\Api\Data\TransactionExtensionInterface $extensionAttributes
+     * @param \Pay360\Payments\Api\Data\TransactionExtensionInterface $extensionAttributes
      * @return $this
      */
     public function setExtensionAttributes(
-        \Pay360\Magento\Api\Data\TransactionExtensionInterface $extensionAttributes
+        \Pay360\Payments\Api\Data\TransactionExtensionInterface $extensionAttributes
     );
 }

@@ -5,16 +5,15 @@
  */
 declare(strict_types=1);
 
-namespace Pay360\Magento\Model\Data;
+namespace Pay360\Payments\Model\Data;
 
-use Pay360\Magento\Api\Data\ProfileInterface;
+use Pay360\Payments\Api\Data\ProfileInterface;
 
 class Profile extends \Magento\Framework\Api\AbstractExtensibleObject implements ProfileInterface
 {
 
     /**
-     * Get transaction_id
-     * @return string|null
+     * {@inheritdoc}
      */
     public function getProfileId()
     {
@@ -22,9 +21,7 @@ class Profile extends \Magento\Framework\Api\AbstractExtensibleObject implements
     }
 
     /**
-     * Set transaction_id
-     * @param string $transactionId
-     * @return \Pay360\Magento\Api\Data\ProfileInterface
+     * {@inheritdoc}
      */
     public function setProfileId($transactionId)
     {
@@ -267,7 +264,7 @@ class Profile extends \Magento\Framework\Api\AbstractExtensibleObject implements
      * {@inheritdoc}
      */
     public function setExtensionAttributes(
-        \Pay360\Magento\Api\Data\ProfileExtensionInterface $extensionAttributes
+        \Pay360\Payments\Api\Data\ProfileExtensionInterface $extensionAttributes
     ) {
         return $this->_setExtensionAttributes($extensionAttributes);
     }

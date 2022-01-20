@@ -14,9 +14,15 @@
 				</field>
 				<field id="iframe_width" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="25" translate="label" type="text">
 					<label>iFrame Width</label>
+                    <depends>
+                        <field id="payment_type">hpf</field>
+                    </depends>
 				</field>
 				<field id="iframe_height" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="25" translate="label" type="text">
 					<label>iFrame Height</label>
+                    <depends>
+                        <field id="payment_type">hpf</field>
+                    </depends>
 				</field>
 				<field id="api_user" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="26" translate="label" type="text">
 					<label>API Username</label>

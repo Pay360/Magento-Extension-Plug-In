@@ -13,29 +13,21 @@ class Info extends \Magento\Payment\Block\Info\Cc
     protected $_transactionRepository;
 
     /**
-     * @var \Pay360\Payments\Model\InfoFactory
-     */
-    protected $_infoFactory;
-
-    /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param \Pay360\Payments\Api\TransactionRepositoryInterface $transactionRepository
-     * @param \Pay360\Payments\Helper\Data $gr4vyHelper
-     * @param \Pay360\Payments\Model\InfoFactory $infoFactory
+     * @param \Pay360\Payments\Helper\Data $helper
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
         \Pay360\Payments\Api\TransactionRepositoryInterface $transactionRepository,
-        \Pay360\Payments\Helper\Data $gr4vyHelper,
-        \Pay360\Payments\Model\InfoFactory $infoFactory,
+        \Pay360\Payments\Helper\Data $helper,
         array $data = []
     ) {
-        $this->_infoFactory = $infoFactory;
         $this->_transactionRepository = $transactionRepository;
-        $this->_helper = $gr4vyHelper;
+        $this->_helper = $helper;
         parent::__construct($context, $paymentConfig, $data);
     }
 

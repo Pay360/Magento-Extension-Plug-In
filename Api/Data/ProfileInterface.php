@@ -21,7 +21,7 @@
 
 namespace Pay360\Payments\Api\Data;
 
-interface ProfileInterface
+interface ProfileInterface extends \Magento\Framework\Api\ExtensibleDataInterface
 {
 
     const ID = 'id';
@@ -237,16 +237,16 @@ interface ProfileInterface
 
     /**
      * Retrieve existing extension attributes object or create a new one.
-     * @return \Pay360\Magento\Api\Data\ProfilerExtensionInterface|null
+     * @return \Pay360\Payments\Api\Data\ProfilerExtensionInterface|null
      */
     public function getExtensionAttributes();
 
     /**
      * Set an extension attributes object.
-     * @param \Pay360\Magento\Api\Data\ProfileExtensionInterface $extensionAttributes
+     * @param \Pay360\Payments\Api\Data\ProfileExtensionInterface $extensionAttributes
      * @return $this
      */
     public function setExtensionAttributes(
-        \Pay360\Magento\Api\Data\ProfileExtensionInterface $extensionAttributes
+        \Pay360\Payments\Api\Data\ProfileExtensionInterface $extensionAttributes
     );
 }

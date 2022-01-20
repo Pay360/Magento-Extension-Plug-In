@@ -22,6 +22,7 @@
 namespace Pay360\Payments\Controller\Gateway;
 
 use Magento\Framework\Controller\ResultFactory;
+use Pay360\Payments\Api\Data\SessionInterface as DataSessionInterface;
 
 class GatewayAbstract extends \Magento\Framework\App\Action\Action
 {
@@ -39,8 +40,12 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
     protected $_nvp;
     protected $_pay360Helper;
     protected $_logger;
-    protected $_pay360SessionFactory;
-    protected $_transactionFactory;
+    protected $_sessionRepoistory;
+    /**
+     * @var DataSessionInterface
+     */
+    protected $_sessionData;
+    protected $_transactionRepository;
     protected $_pay360Model;
 
     /**
@@ -74,8 +79,9 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
         \Pay360\Payments\Model\Standard $pay360Model,
         \Magento\Framework\Json\EncoderInterface $jsonEncoder,
         \Magento\Framework\Json\DecoderInterface $jsonDecoder,
-        \Pay360\Payments\Model\SessionFactory $sessionFactory,
-        \Pay360\Payments\Model\TransactionFactory $transactionFactory
+        \Pay360\Payments\Api\SessionRepositoryInterface $sessionRepository,
+        DataSessionInterface $sessionData,
+        \Pay360\Payments\Api\TransactionRepositoryInterface $transactionRepository
     ) {
         parent::__construct($context);
         $this->_resultPageFactory = $resultPageFactory;
@@ -89,8 +95,9 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
         $this->_pay360Model = $pay360Model;
         $this->_jsonEncoder = $jsonEncoder;
         $this->_jsonDecoder = $jsonDecoder;
-        $this->_pay360SessionFactory = $sessionFactory;
-        $this->_transactionFactory = $transactionFactory;
+        $this->_sessionRepoistory = $sessionRepository;
+        $this->_sessionData = $sessionData;
+        $this->_transactionRepository = $transactionRepository;
     }
 
     /**

@@ -18,69 +18,62 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+declare(strict_types=1);
 
 namespace Pay360\Payments\Model;
 
 use Pay360\Payments\Api\Data\TransactionInterface;
+use Pay360\Payments\Api\Data\TransactionInterfaceFactory;
+use Magento\Framework\Api\DataObjectHelper;
 
-class Transaction extends \Magento\Framework\Model\AbstractModel implements TransactionInterface
+class Transaction extends \Magento\Framework\Model\AbstractModel
 {
-    const STATUS_FAILED = 'FAILED';
+
+    protected $transactionDataFactory;
+
+    protected $dataObjectHelper;
+
+    protected $_eventPrefix = 'pay360_transaction';
 
     /**
-     * @return void
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Framework\Registry $registry
+     * @param TransactionInterfaceFactory $transactionDataFactory
+     * @param DataObjectHelper $dataObjectHelper
+     * @param \Pay360\Payments\Model\ResourceModel\Transaction $resource
+     * @param \Pay360\Payments\Model\ResourceModel\Transaction\Collection $resourceCollection
+     * @param array $data
      */
-    protected function _construct()
-    {
-        $this->_init('Pay360\Payments\Model\ResourceModel\Transaction');
+    public function __construct(
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        TransactionInterfaceFactory $transactionDataFactory,
+        DataObjectHelper $dataObjectHelper,
+        \Pay360\Payments\Model\ResourceModel\Transaction $resource,
+        \Pay360\Payments\Model\ResourceModel\Transaction\Collection $resourceCollection,
+        array $data = []
+    ) {
+        $this->transactionDataFactory = $transactionDataFactory;
+        $this->dataObjectHelper = $dataObjectHelper;
+        parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
 
     /**
-     * Get transaction_id
-     * @return string
+     * Retrieve transaction model with transaction data
+     * @return TransactionInterface
      */
-    public function getTransactionId()
+    public function getDataModel()
     {
-        return $this->getData(self::TRANSACTION_ID);
-    }
-
-    /**
-     * Set transaction_id
-     * @param string $transactionId
-     * @return \Pay360\Payments\Api\Data\TransactionInterface
-     */
-    public function setTransactionId($transactionId)
-    {
-        return $this->setData(self::TRANSACTION_ID, $transactionId);
-    }
-
-    /**
-     * Get id
-     * @return string
-     */
-    public function getId()
-    {
-        return $this->getData(self::ID);
-    }
-
-    /**
-     * Set id
-     * @param string $id
-     * @return \Pay360\Payments\Api\Data\TransactionInterface
-     */
-    public function setId($id)
-    {
-        return $this->setData(self::ID, $id);
-    }
-
-    /**
-     * load transaction by merchant_ref (order entity_id)
-     * @param $entity_id
-     *
-     * @return $this
-     */
-    public function loadByMerchantRef($entity_id)
-    {
-        return $this->getCollection()->addFieldToFilter('merchant_ref', $entity_id)->setOrder('id', 'DESC')->getFirstItem();
+        $transactionData = $this->getData();
+        
+        $transactionDataObject = $this->transactionDataFactory->create();
+        $this->dataObjectHelper->populateWithArray(
+            $transactionDataObject,
+            $transactionData,
+            TransactionInterface::class
+        );
+        
+        return $transactionDataObject;
     }
 }
+

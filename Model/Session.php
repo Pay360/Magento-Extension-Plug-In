@@ -18,56 +18,62 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+declare(strict_types=1);
 
 namespace Pay360\Payments\Model;
 
 use Pay360\Payments\Api\Data\SessionInterface;
+use Pay360\Payments\Api\Data\SessionInterfaceFactory;
+use Magento\Framework\Api\DataObjectHelper;
 
-class Session extends \Magento\Framework\Model\AbstractModel implements SessionInterface
+class Session extends \Magento\Framework\Model\AbstractModel
 {
+
+    protected $sessionDataFactory;
+
+    protected $dataObjectHelper;
+
+    protected $_eventPrefix = 'pay360_session';
+
     /**
-     * @return void
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Framework\Registry $registry
+     * @param SessionInterfaceFactory $sessionDataFactory
+     * @param DataObjectHelper $dataObjectHelper
+     * @param \Pay360\Payments\Model\ResourceModel\Session $resource
+     * @param \Pay360\Payments\Model\ResourceModel\Session\Collection $resourceCollection
+     * @param array $data
      */
-    protected function _construct()
-    {
-        $this->_init('Pay360\Payments\Model\ResourceModel\Session');
+    public function __construct(
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        SessionInterfaceFactory $sessionDataFactory,
+        DataObjectHelper $dataObjectHelper,
+        \Pay360\Payments\Model\ResourceModel\Session $resource,
+        \Pay360\Payments\Model\ResourceModel\Session\Collection $resourceCollection,
+        array $data = []
+    ) {
+        $this->sessionDataFactory = $sessionDataFactory;
+        $this->dataObjectHelper = $dataObjectHelper;
+        parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
 
     /**
-     * Get session_id
-     * @return string
+     * Retrieve session model with session data
+     * @return SessionInterface
      */
-    public function getSessionId()
+    public function getDataModel()
     {
-        return $this->getData(self::SESSION_ID);
-    }
-
-    /**
-     * Set session_id
-     * @param string $sessionId
-     * @return \Pay360\Payments\Api\Data\SessionInterface
-     */
-    public function setSessionId($sessionId)
-    {
-        return $this->setData(self::SESSION_ID, $sessionId);
-    }
-
-    /**
-     * Get id
-     * @return string
-     */
-    public function getId()
-    {
-        return $this->getData(self::ID);
-    }
-
-    /**
-     * Set id
-     * @param string $id
-     * @return \Pay360\Payments\Api\Data\SessionInterface
-     */
-    public function setId($id)
-    {
-        return $this->setData(self::ID, $id);
+        $sessionData = $this->getData();
+        
+        $sessionDataObject = $this->sessionDataFactory->create();
+        $this->dataObjectHelper->populateWithArray(
+            $sessionDataObject,
+            $sessionData,
+            SessionInterface::class
+        );
+        
+        return $sessionDataObject;
     }
 }
+
