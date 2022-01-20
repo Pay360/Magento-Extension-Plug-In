@@ -178,7 +178,7 @@ class TransactionRepository implements transactionRepositoryInterface
         $transactionSearchResults = $this->getList($transactionSearchCriteria);
 
         if ($transactionSearchResults->getTotalCount() > 0) {
-            list($item) = $transactionSearchResults->getItems();
+            list($item) = array_values($transactionSearchResults->getItems());
             return $item;
         }
 
@@ -197,7 +197,7 @@ class TransactionRepository implements transactionRepositoryInterface
         $transactionSearchResults = $this->getList($transactionSearchCriteria);
 
         if ($transactionSearchResults->getTotalCount() > 0) {
-            list($item) = $transactionSearchResults->getItems();
+            list($item) = array_values($transactionSearchResults->getItems());
             return $item;
         }
 

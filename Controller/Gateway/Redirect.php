@@ -30,6 +30,9 @@ class Redirect extends GatewayAbstract
      */
     public function execute()
     {
+        // check last real order id
+        $this->_logger->write($this->_checkoutSession->getLastRealOrderId());
+
         if ($this->_checkoutSession->getLastRealOrderId()) {
             $response = $this->_nvp->callDoPayment();
             $sessionData = $this->_sessionRepoistory->loadBySessionId($response['sessionId']);

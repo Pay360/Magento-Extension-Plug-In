@@ -46,6 +46,8 @@ class HpfProvider implements ConfigProviderInterface
             'payment' => [
                 'pay360hpf' => [
                     'method' => 'Hosted Payment Form',
+                    'width' => $this->scopeConfig->getValue('payment/pay360/iframe_width'),
+                    'height' => $this->scopeConfig->getValue('payment/pay360/iframe_height'),
                     'description' => $this->scopeConfig->getValue('payment/pay360/description'),
                     'actionUrl' => $this->getFrameActionUrl(),
                     'isActive' => $this->scopeConfig->getValue('payment/pay360/payment_type') == self::CODE

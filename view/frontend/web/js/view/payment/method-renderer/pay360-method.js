@@ -17,7 +17,7 @@ define([
                 return checkoutConfig.image[this.item.method];
             },
             getInstructions: function () {
-                return checkoutConfig[this.item.method].description;
+                return checkoutConfig.pay360.description;
             },
             afterPlaceOrder: function () {
                 window.location.replace(url.build('pay360/gateway/redirect/'));

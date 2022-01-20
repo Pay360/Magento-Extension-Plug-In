@@ -14,7 +14,7 @@ class Logger extends AbstractHelper
 {
     private $expected_error_msgs = array(
         'No such entity with cartId' => 'Quote not available',
-        '409 Conflict' => 'Request conflicts with existing record'
+        'Decoding failed' => 'Request Body Invalid'
     );
     /**
      * @var LoggerInterface
@@ -46,6 +46,10 @@ class Logger extends AbstractHelper
      */
     public function write($content)
     {
+        if (is_string($content) || is_null($content)) {
+            $content = ['text' => $content];
+        }
+
         try {
             $this->logMixed($content);
         } catch (Exception $e) {
@@ -66,7 +70,7 @@ class Logger extends AbstractHelper
 
             $original_message = $e->getMessage();
             if ($translated_message = $this->translateErrorMsg($original_message)) {
-                $this->logger->error(__('Recognized Error :'), $translated_message);
+                $this->logger->error(__('Recognized Error :'). $translated_message);
             }
             else {
                 $this->logger->error(

@@ -21,7 +21,12 @@
 
 namespace Pay360\Payments\Controller\Gateway;
 
-class Postauthcallback extends GatewayAbstract
+use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
+
+class Postauthcallback extends GatewayAbstract implements HttpPostActionInterface, CsrfAwareActionInterface
 {
     /**
      * Execute view action
@@ -30,11 +35,29 @@ class Postauthcallback extends GatewayAbstract
      */
     public function execute()
     {
+        $this->_logger->write([ 'postAuthCallback' => $this->getRawBody() ]);
+
         try {
             $resultJson = $this->_resultJsonFactory->create();
             return $resultJson->setData($this->_pay360Model->postAuthCallback($this->_jsonDecoder->decode($this->getRawBody())));
         } catch (\Exception $e) {
-            $this->_logger->write($e);
+            $this->_logger->logException($e);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
+    {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 }

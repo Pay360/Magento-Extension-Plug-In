@@ -108,13 +108,8 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
     public function getRawBody()
     {
         if (null === $this->_rawBody) {
-            $body = file_get_contents('php://input');
-
-            if (strlen(trim($body)) > 0) {
-                $this->_rawBody = $body;
-            } else {
-                $this->_rawBody = false;
-            }
+            $this->_rawBody = $this->getRequest()->getContent();
+            $this->_rawBody = empty($this->_rawBody) ? '{}' : $this->_rawBody;
         }
         return $this->_rawBody;
     }

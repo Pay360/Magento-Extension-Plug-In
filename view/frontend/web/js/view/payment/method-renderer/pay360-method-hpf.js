@@ -43,11 +43,11 @@ define([ 'jquery',
             },
 
             getiFrameWidth: function () {
-                return '80%';
+                return checkoutConfig.pay360hpf.width;
             },
 
             getiFrameHeight: function () {
-                return '410';
+                return checkoutConfig.pay360hpf.height;
             },
 
             /**
@@ -55,7 +55,7 @@ define([ 'jquery',
              * @returns {String}
              */
             getActionUrl: function () {
-                return this.isInAction() ? window.checkoutConfig.payment.pay360hpf.actionUrl : '';
+                return this.isInAction() ? checkoutConfig.pay360hpf.actionUrl : '';
             },
 
             /**

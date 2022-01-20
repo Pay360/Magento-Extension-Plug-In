@@ -28,6 +28,7 @@ use Magento\Framework\Api\DataObjectHelper;
 
 class Transaction extends \Magento\Framework\Model\AbstractModel
 {
+    const STATUS_FAILED = 'FAILED';
 
     protected $transactionDataFactory;
 

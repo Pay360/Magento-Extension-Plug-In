@@ -34,7 +34,11 @@
 					<label>Installation ID</label>
 				</field>
 				<field id="test" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="29" translate="label" type="select">
-					<label>Test / Debug Mode</label>
+					<label>Test Mode</label>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+				</field>
+				<field id="debug" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="30" translate="label" type="select">
+					<label>Enable Debug</label>
 					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 				</field>
 				<field id="payment_action" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="30" translate="label" type="select">

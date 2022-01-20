@@ -582,12 +582,13 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function preAuthCallback($body_json)
     {
+        $sessionId = empty($body_json['sessionId']) ? false : $body_json['sessionId'];
         $response = array(
             'callbackResponse' => array(
                 'preAuthCallbackResponse' => array(
                     'action' => \Pay360\Payments\Model\Config::RESPOND_PROCEED,
                     'redirect' => array(
-                        'url' => $this->_urlBuilder->getUrl('pay360/gateway/paymentsuspend', array('sessionId' => $body_json['sessionId'])),
+                        'url' => $this->_urlBuilder->getUrl('pay360/gateway/paymentsuspend', array('sessionId' => $sessionId)),
                         'frame' => 'CONTAINER' // Possible Values: CONTAINER, TOP
                     )
                     // 'return' => array() // not necessary since we allready have call back url

@@ -4,6 +4,7 @@
 		<payment>
 			<pay360>
 				<active>1</active>
+				<debug>1</debug>
 				<model>Pay360\Payments\Model\Standard</model>
                 <iframe_width>600</iframe_width>
                 <iframe_height>400</iframe_height>
