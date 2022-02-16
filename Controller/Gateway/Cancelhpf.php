@@ -21,7 +21,12 @@
 
 namespace Pay360\Payments\Controller\Gateway;
 
-class Cancelhpf extends GatewayAbstract
+use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
+
+class Cancelhpf extends GatewayAbstract implements HttpGetActionInterface, CsrfAwareActionInterface
 {
     /**
      * Execute view action
@@ -35,5 +40,21 @@ class Cancelhpf extends GatewayAbstract
         $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
 
         return $this->_resultPageFactory->create();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
+    {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 }

@@ -135,14 +135,7 @@ class Nvp extends AbstractApi
             );
         }
         // customer information for both guest and logged in customer
-        $nvpArr['customer']['details'] = array(
-            'name' => $this->getOrder()->getBillingAddress()->getFirstName().' '.$this->getOrder()->getBillingAddress()->getLastName(),
-            'address' => $this->getAddressDetails($this->getOrder()->getBillingAddress()),
-            'telephone' => $this->getOrder()->getBillingAddress()->getTelephone(),
-            'emailAddress' => $this->getOrder()->getCustomerEmail(),
-            'ipAddress' => $this->getOrder()->getRemoteIp(),
-            'defaultCurrency' => $this->getOrder()->getOrderCurrencyCode()
-        );
+        $nvpArr['customer']['details'] = $this->getCustomerDetails($this->getOrder());
 
         // look and feel for payment
         if ($this->_config->getValue('payment/pay360/skin_code') || $this->_config->getValue('payment/pay360/custom_skin_code')) {
@@ -157,6 +150,19 @@ class Nvp extends AbstractApi
         $this->setResourceEndpoint($url);
 
         return $this->call($nvpArr);
+    }
+
+    public function getCustomerDetails($order)
+    {
+        $billingAddress = $order->getBillingAddress();
+        return array(
+            'name' => $billingAddress->getFirstName().' '.$billingAddress->getLastName(),
+            'address' => $this->getAddressDetails($billingAddress),
+            'telephone' => $billingAddress->getTelephone(),
+            'emailAddress' => $order->getCustomerEmail(),
+            'ipAddress' => $order->getRemoteIp(),
+            'defaultCurrency' => $order->getOrderCurrencyCode()
+        );
     }
 
     public function callDoCapture($transaction, $order)

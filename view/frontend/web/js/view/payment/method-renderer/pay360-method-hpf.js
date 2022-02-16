@@ -17,10 +17,10 @@ define([ 'jquery',
             isInAction: iframe.isInAction,
 
             getMethodImage: function () {
-                return checkoutConfig.image[this.item.method];
+                return checkoutConfig.pay360hpf.image;
             },
             getInstructions: function () {
-                return checkoutConfig[this.item.method].description;
+                return checkoutConfig.pay360hpf.description;
             },
 
             paymentReady: function () {

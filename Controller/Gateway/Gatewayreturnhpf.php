@@ -21,7 +21,12 @@
 
 namespace Pay360\Payments\Controller\Gateway;
 
-class Gatewayreturnhpf extends GatewayAbstract
+use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
+
+class Gatewayreturnhpf extends GatewayAbstract implements HttpPostActionInterface, CsrfAwareActionInterface
 {
     /**
      * Execute view action
@@ -31,5 +36,21 @@ class Gatewayreturnhpf extends GatewayAbstract
     public function execute()
     {
         return $this->_resultPageFactory->create();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
+    {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 }

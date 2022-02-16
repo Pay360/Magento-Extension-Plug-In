@@ -21,7 +21,12 @@
 
 namespace Pay360\Payments\Controller\Gateway;
 
-class Gatewayreturn extends GatewayAbstract
+use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
+
+class Gatewayreturn extends GatewayAbstract implements HttpGetActionInterface, CsrfAwareActionInterface
 {
     /**
      * Execute view action
@@ -38,5 +43,21 @@ class Gatewayreturn extends GatewayAbstract
         }
 
         return $this->_resultRedirect->setPath('checkout/onepage/success', array('_secure'=>true));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
+    {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 }
