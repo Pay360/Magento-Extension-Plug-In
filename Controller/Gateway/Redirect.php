@@ -21,12 +21,12 @@
 
 namespace Pay360\Payments\Controller\Gateway;
 
-use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 
-class Redirect extends GatewayAbstract implements HttpPostActionInterface, CsrfAwareActionInterface
+class Redirect extends GatewayAbstract implements HttpGetActionInterface, CsrfAwareActionInterface
 {
     /**
      * Execute view action

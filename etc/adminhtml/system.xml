@@ -8,7 +8,14 @@
 					<label>Enabled</label>
 					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 				</field>
-				<field id="payment_type" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="25" translate="label" type="select">
+				<field id="3ds" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="15" translate="label" type="select">
+					<label>Enable 3DS V2</label>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+				</field>
+				<field id="payment_type" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label" type="select">
 					<label>Display Type</label>
 					<source_model>Pay360\Payments\Model\Source\PaymentType</source_model>
 				</field>

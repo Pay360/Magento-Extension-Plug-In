@@ -127,6 +127,11 @@ class Nvp extends AbstractApi
             )
         );
 
+        // setup 3DS
+        if ($this->_config->getValue('payment/pay360/3ds')) {
+            //$nvpArr['customer']['email'] = $this->getOrder()->getCustomerEmail();
+        }
+
         // check if customer logged in -> create new profile
         if ($this->getOrder()->getCustomerId()) {
             $nvpArr['customer']['registered'] = true; // register customer to Pay360 by default
@@ -159,7 +164,7 @@ class Nvp extends AbstractApi
             'name' => $billingAddress->getFirstName().' '.$billingAddress->getLastName(),
             'address' => $this->getAddressDetails($billingAddress),
             'telephone' => $billingAddress->getTelephone(),
-            'emailAddress' => $order->getCustomerEmail(),
+            'emailAddress' => $order->getCustomerEmail(), // is this enough for 3DS ?
             'ipAddress' => $order->getRemoteIp(),
             'defaultCurrency' => $order->getOrderCurrencyCode()
         );

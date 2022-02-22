@@ -643,7 +643,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                     $newOrderStatus = $order->getStatus();
                 }
 
-                $order->addStatusHistoryComment(__("Order #%1 updated.", $order->getId()));
+                $order->addStatusHistoryComment(__("Order #%1 updated.", $order->getIncrementId()));
                 $order->setState($newOrderStatus)->setStatus($newOrderStatus)->save();
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);

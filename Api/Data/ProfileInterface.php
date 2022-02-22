@@ -237,7 +237,7 @@ interface ProfileInterface extends \Magento\Framework\Api\ExtensibleDataInterfac
 
     /**
      * Retrieve existing extension attributes object or create a new one.
-     * @return \Pay360\Payments\Api\Data\ProfilerExtensionInterface|null
+     * @return \Pay360\Payments\Api\Data\ProfileExtensionInterface|null
      */
     public function getExtensionAttributes();
 
