@@ -155,7 +155,7 @@ class SessionRepository implements sessionRepositoryInterface
 
         if ($transactionSearchResults->getTotalCount() > 0) {
             list($item) = array_values($transactionSearchResults->getItems());
-            return $item;
+            return $item->getDataModel();
         }
 
         return null;

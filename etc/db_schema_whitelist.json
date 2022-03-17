@@ -1,0 +1,78 @@
+{
+    "pay360_payments_profile": {
+        "column": {
+            "id": true,
+            "customer_id": true,
+            "registered": true,
+            "profile_id": true,
+            "card_token": true,
+            "card_type": true,
+            "card_usage_type": true,
+            "card_scheme": true,
+            "card_category": true,
+            "card_holder_name": true,
+            "card_nick_name": true,
+            "masked_pan": true,
+            "expiry_date": true,
+            "issuer": true,
+            "issuer_country": true
+        },
+        "index": {
+            "PAY360_PAYMENTS_PROFILE_CARD_TOKEN": true,
+            "PAY360_PAYMENTS_PROFILE_CUSTOMER_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PAY360_PAYMENTS_PROFILE_PROFILE_ID": true
+        }
+    },
+    "pay360_payments_session": {
+        "column": {
+            "id": true,
+            "order_id": true,
+            "session_id": true,
+            "session_date": true,
+            "last_modified": true,
+            "status": true
+        },
+        "index": {
+            "PAY360_PAYMENTS_SESSION_ORDER_ID": true,
+            "PAY360_PAYMENTS_SESSION_SESSION_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "pay360_payments_transaction": {
+        "column": {
+            "id": true,
+            "transaction_id": true,
+            "deferred": true,
+            "merchant_ref": true,
+            "merchant_description": true,
+            "transaction_type": true,
+            "amount": true,
+            "status": true,
+            "currency": true,
+            "transaction_time": true,
+            "received_time": true,
+            "channel": true
+        },
+        "index": {
+            "PAY360_PAYMENTS_TRANSACTION_TRANSACTION_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "quote_payment": {
+        "column": {
+            "pay360_transaction_id": true
+        }
+    },
+    "sales_order_payment": {
+        "column": {
+            "pay360_transaction_id": true
+        }
+    }
+}
