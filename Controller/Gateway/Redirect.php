@@ -40,28 +40,37 @@ class Redirect extends GatewayAbstract implements HttpGetActionInterface, CsrfAw
 
         if ($this->_checkoutSession->getLastRealOrderId()) {
             $response = $this->_nvp->callDoPayment();
-            $sessionData = $this->_sessionRepoistory->loadBySessionId($response['sessionId']);
-            if (is_null($sessionData)) {
-                $sessionData = $this->_sessionData;
+            try {
+                $sessionData = $this->_sessionRepoistory->loadBySessionId($response['sessionId']);
+                if (is_null($sessionData)) {
+                    $sessionData = $this->_sessionData;
+                }
+                $sessionData->setOrderId($this->_checkoutSession->getLastOrderId()) // last_order_id is entity_id 
+                            ->setSessionId($response['sessionId'])
+                            ->setSessionDate(date("Y-m-d H:i:s"))
+                            ->setStatus($response['status']);
+                $this->_sessionRepoistory->save($sessionData);
+
+                if ($response['status'] === \Pay360\Payments\Model\Config::STATUS_SUCCESS) {
+                    return $this->_resultRedirect->setUrl($response['redirectUrl']);
+                } else {
+                    return $this->failedPay360(__('Pay360 payment failed. Please contact us for support'));
+                }
             }
-            $sessionData->setOrderId($this->_checkoutSession->getLastOrderId()) // last_order_id is entity_id 
-                ->setSessionId($response['sessionId'])
-                ->setSessionDate(date("Y-m-d H:i:s"))
-                ->setStatus($response['status']);
-            $this->_sessionRepoistory->save($sessionData);
-
-            if ($response['status'] === \Pay360\Payments\Model\Config::STATUS_SUCCESS) {
-                return $this->_resultRedirect->setUrl($response['redirectUrl']);
-            } else {
-                $this->messageManager->addNoticeMessage(__('Pay360 payment failed. please contact for support'));
-                // reinit cart when redirect failed
-                $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
-
-                return $this->_resultRedirect->setUrl('/checkout/cart/');
+            catch (\Exception $e) {
+                return $this->failedPay360(__('Pay360 Payment Method is not avaiable. Please try again or contact us for support.'));
             }
         }
 
         return $this->_resultRedirect->setUrl('/');
+    }
+
+    public function failedPay360($msg)
+    {
+        $this->messageManager->addNoticeMessage($msg);
+        $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
+
+        return $this->_resultRedirect->setUrl('/checkout/cart/');
     }
 
     /**
