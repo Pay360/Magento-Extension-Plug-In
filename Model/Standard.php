@@ -638,13 +638,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
 
                 // set order state with post auth call back. will not append to order status history
                 $order = $this->_orderFactory->create()->load($transaction['merchantRef']);
-                $newOrderStatus = $this->getConfigData('order_status', \Magento\Sales\Model\Order::STATE_NEW, $order->getStoreId());
-                if (empty($newOrderStatus)) {
-                    $newOrderStatus = $order->getStatus();
-                }
+                $status = $this->getPredefinedOrderStatus($order);
 
                 $order->addStatusHistoryComment(__("Order #%1 updated.", $order->getIncrementId()));
-                $order->setState($newOrderStatus)->setStatus($newOrderStatus)->save();
+                $order->setState($status)->setStatus($status)->save();
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
@@ -697,6 +694,26 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
+     * get order status predefined for new Pay360 orders
+     *
+     * @param integer
+     * @return string
+     */
+    public function getPredefinedOrderStatus($order, $force_processing = false)
+    {
+        if ($force_processing) {
+            return \Magento\Sales\Model\Order::STATE_PROCESSING;
+        }
+
+        $newOrderStatus = $this->getConfigData('order_status', \Magento\Sales\Model\Order::STATE_NEW, $order->getStoreId());
+        if (empty($newOrderStatus)) {
+            $newOrderStatus = $order->getStatus();
+        }
+
+        return $newOrderStatus;
+    }
+
+    /**
      * process order, invoice after payment capture is done
      */
     public function afterCapture($order, $transaction)
@@ -725,7 +742,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                     /* set order status */
                     $order->addStatusHistoryComment(__("Captured amount of %1 online. Transaction ID: '%2'.", strip_tags($order->getBaseCurrency()->formatTxt($transaction['amount'])), strval($transaction['transactionId'])));
 
-                    $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
+                    $status = $this->getPredefinedOrderStatus($order);
+                    $order->setState($status)->setStatus($status);
                 } catch (\Exception $e) {
                     $this->_logger->logException($e);
                 }
