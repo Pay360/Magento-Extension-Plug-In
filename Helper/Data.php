@@ -104,7 +104,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         if (!$order) {
             return;
         }
-        // cancel before reinit
+        // cancel before reinit - NOTE: status update required before cancelling
+        $status = $this->scopeConfig->getValue('payment/pay360/order_status', ScopeInterface::SCOPE_STORE, $order->getStoreId());
+        $order->addStatusHistoryComment(__("Order #%1 cancelled.", $order->getIncrementId()));
+        $order->setState($status)->setStatus($status)->save();
+
         $this->_orderManagement->cancel($order->getId());
 
         $items = $order->getItemsCollection();
