@@ -35,7 +35,7 @@ class Gatewayreturn extends GatewayAbstract implements HttpGetActionInterface, C
      */
     public function execute()
     {
-        $lastOrderId = $this->_checkoutSession->getLastOrderId();
+        $lastOrderId = $this->getOrderId();
         $transaction = $this->_transactionRepository->loadByMerchantRef($lastOrderId);
         if ($transaction && $transaction->getStatus() == \Pay360\Payments\Model\Transaction::STATUS_FAILED)
         {

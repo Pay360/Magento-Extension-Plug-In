@@ -37,8 +37,8 @@ class Cancel extends GatewayAbstract implements HttpGetActionInterface, CsrfAwar
     {
         $this->messageManager->addNoticeMessage(__('Payment Cancelled !'));
         // reinit cart when redirect failed
-        $this->_logger->logMixed(['order_id' => $this->_checkoutSession->getLastRealOrderId()]);
-        $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
+        $this->_logger->logMixed(['order_id' => $this->getOrderId()]);
+        $this->_pay360Helper->reinitCart($this->getOrderId());
 
         return $this->_resultRedirect->setUrl('/checkout/cart/');
     }

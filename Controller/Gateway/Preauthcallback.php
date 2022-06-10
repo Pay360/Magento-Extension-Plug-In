@@ -35,8 +35,6 @@ class Preauthcallback extends GatewayAbstract implements HttpPostActionInterface
      */
     public function execute()
     {
-        $this->_logger->write([ 'preAuthCallback' => $this->getRawBody() ]);
-
         try {
             $resultJson = $this->_resultJsonFactory->create();
             return $resultJson->setData($this->_pay360Model->preAuthCallback($this->_jsonDecoder->decode($this->getRawBody())));

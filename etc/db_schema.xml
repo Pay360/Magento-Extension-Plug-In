@@ -19,9 +19,6 @@
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>
         </constraint>
-        <constraint xsi:type="unique" referenceId="PAY360_PROFILE_ID">
-            <column name="profile_id"/>
-        </constraint>
         <index referenceId="PAY360_CARD_TOKEN" indexType="btree">
             <column name="card_token"/>
         </index>

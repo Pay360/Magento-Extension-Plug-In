@@ -4,17 +4,17 @@ namespace Pay360\Payments\Model\Api;
 
 use Pay360\Payments\Model\Api\AbstractApi;
 use Pay360\Payments\Model\Config;
+use Pay360\Payments\Helper\Data as Pay360Helper;
 
 class Nvp extends AbstractApi
 {
-
-    protected $_checkoutSession;
-
     protected $_orderIncrementId;
 
     protected $_lastOrder;
 
     protected $_transaction;
+
+    protected $_pay360Helper;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
@@ -24,12 +24,12 @@ class Nvp extends AbstractApi
     public function __construct(
         \Magento\Customer\Helper\Address $customerAddress,
         \Pay360\Payments\Helper\Logger $logger,
+        Pay360Helper $pay360Helper,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Directory\Model\RegionFactory $regionFactory,
         \Pay360\Payments\Model\Config $config,
         \Pay360\Payments\Model\Session $pay360session,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Sales\Api\Data\OrderInterface $order,
         \Pay360\Payments\Model\Transaction $transaction,
         \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory,
@@ -52,7 +52,7 @@ class Nvp extends AbstractApi
             $curlClient,
             $data
         );
-        $this->_checkoutSession = $checkoutSession;
+        $this->_pay360Helper = $pay360Helper;
         $this->_lastOrder = $order;
         $this->_transaction = $transaction;
     }
@@ -65,7 +65,7 @@ class Nvp extends AbstractApi
     public function getOrder()
     {
         if (!isset($this->_orderIncrementId)) {
-            $this->_orderIncrementId = $this->_checkoutSession->getLastRealOrderId();
+            $this->_orderIncrementId = $this->_pay360Helper->getOrderId();
         }
         if (!$this->_lastOrder->getId()) {
             $this->_lastOrder->loadByIncrementId($this->_orderIncrementId);
@@ -86,11 +86,20 @@ class Nvp extends AbstractApi
         );
     }
 
-    public function callDoPayment($returnUrl = null, $cancelUrl = null)
+    /**
+     * send payment authorization request to pay360
+     *
+     * @param string
+     * @param string
+     * @param string
+     *
+     * @return array
+     */
+    public function callDoPayment($orderId, $returnUrl = null, $cancelUrl = null)
     {
         $nvpArr = array(
             'transaction' => array(
-                'merchantReference' => $this->_checkoutSession->getLastOrderId(),
+                'merchantReference' => $orderId,
                 'money' => array(
                     'amount' => array(
                         'fixed' => $this->getOrder()->getGrandTotal()

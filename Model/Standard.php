@@ -387,7 +387,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         $order = $payment->getOrder();
-        $transaction = $this->_transactionFactory->create()->load($order->getId(), 'merchant_ref');
+        $transaction = $this->_transactionFactory->create()->load($order->getIncrementId(), 'merchant_ref');
         // apply capture logic here. only take place if order was place with Authorize only
         $response = $this->_nvp->callDoCapture($transaction, $order);
 
@@ -564,16 +564,21 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function transactionNotificationCallback($body_json)
     {
+        $this->_logger->write(['transaction_notification_callback' => $body_json]);
+
         $transaction = $body_json['transaction'];
 
-        $order = $this->_orderFactory->create()->load($transaction['merchantRef']);
-        if ($order->getId() && $order->getGrandTotal() == $transaction['amount'] && empty($transaction['deferred'])) {
+        $order = $this->_orderFactory->create()->loadByIncrementId($transaction['merchantRef']);
+        if (
+            $order->getId()
+            && $order->getGrandTotal() == $transaction['amount']
+            && empty($transaction['deferred'])
+        ) {
             $this->afterCapture($order, $transaction);
-        } else {
-            $this->_logger->write("Amounts not equal or Payment deferred");
         }
-
-        $this->_logger->write(['body_json' => $body_json]);
+        else {
+            $this->_logger->write("afterCapture was not triggered because Amounts not equal or Payment deferred");
+        }
     }
 
     /**
@@ -582,6 +587,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function preAuthCallback($body_json)
     {
+        $this->_logger->write(['pre_auth_callback' => $body_json]);
+
         $sessionId = empty($body_json['sessionId']) ? false : $body_json['sessionId'];
         $response = array(
             'callbackResponse' => array(
@@ -605,6 +612,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function postAuthCallback($body_json)
     {
+        $this->_logger->write(['post_auth_callback' => $body_json]);
+
         // Default response is cancel
         $response = array(
             'callbackResponse' => array(
@@ -632,24 +641,25 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 ->setChannel($transaction['channel'])
                 ->save();
 
-            // Create/Upate profile if transaction success
-            if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
+            // Create/Upate profile if transaction success - applicable for AUTHNCAPTURE
+            if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS)
+            {
                 $this->saveProfile($body_json);
 
-                // set order state with post auth call back. will not append to order status history
-                $order = $this->_orderFactory->create()->load($transaction['merchantRef']);
-                $status = $this->getPredefinedOrderStatus($order);
+                // save cc type
+                $order = $this->_orderFactory->create()->loadByIncrementId($transaction['merchantRef']);
+                $payment = $order->getPayment();
+                $card = $body_json['paymentMethod']['card'];
+                $payment->setCcType($card['cardType'])->save();
 
-                $order->addStatusHistoryComment(__("Order #%1 updated.", $order->getIncrementId()));
-                $order->setState($status)->setStatus($status)->save();
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             $this->_logger->logException($e);
         }
 
-        $this->_logger->write(['body_json' => $body_json]);
         return $response;
     }
 
@@ -702,10 +712,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     public function getPredefinedOrderStatus($order, $force_processing = false)
     {
         if ($force_processing) {
-            return \Magento\Sales\Model\Order::STATE_PROCESSING;
+            return \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT;
         }
 
-        $newOrderStatus = $this->getConfigData('order_status', \Magento\Sales\Model\Order::STATE_NEW, $order->getStoreId());
+        $newOrderStatus = $this->getConfigData('order_status', \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT, $order->getStoreId());
         if (empty($newOrderStatus)) {
             $newOrderStatus = $order->getStatus();
         }
@@ -725,7 +735,9 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_orderSender->send($order);
 
         /* verify status. make invoice and set order state to processing. add comments to Order */
-        if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
+        if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS
+            // add deferred condition to make sure invoice creation and predefined order status only applicable for paid order
+            && !$transaction['deferred']) {
             if (!$order->canInvoice()) {
                 $order->addStatusHistoryComment(__("Error in creating an invoice"));
             } else {

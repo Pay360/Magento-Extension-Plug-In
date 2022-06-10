@@ -37,7 +37,7 @@ class Cancelhpf extends GatewayAbstract implements HttpGetActionInterface, CsrfA
     {
         $this->messageManager->addNoticeMessage(__('Payment Cancel!'));
         // reinit cart when payment canceled
-        $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
+        $this->_pay360Helper->reinitCart($this->getOrderId());
 
         return $this->_resultPageFactory->create();
     }

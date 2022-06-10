@@ -37,7 +37,7 @@ class Failedpayment extends GatewayAbstract implements HttpGetActionInterface, C
     {
         $this->messageManager->addNoticeMessage(__('Payment Failed!'));
         // reinit cart when redirect failed
-        $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
+        $this->_pay360Helper->reinitCart($this->getOrderId());
 
         return $this->_resultRedirect->setUrl('/checkout/cart/');
     }

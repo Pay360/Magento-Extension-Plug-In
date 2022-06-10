@@ -35,8 +35,6 @@ class Transactionnotification extends GatewayAbstract implements HttpPostActionI
      */
     public function execute()
     {
-        $this->_logger->write([ 'Transactionnotification' => $this->getRawBody() ]);
-
         try {
             $resultJson = $this->_resultJsonFactory->create();
             return $resultJson->setData($this->_pay360Model->transactionNotificationCallback($this->_jsonDecoder->decode($this->getRawBody())));

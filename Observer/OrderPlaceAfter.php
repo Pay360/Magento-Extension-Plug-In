@@ -44,7 +44,7 @@ class OrderPlaceAfter implements ObserverInterface
         if($order->getEntityType() == 'order'
             && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE) {
 
-            $order->setState(\Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW)->setStatus(\Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW);
+            $order->setState(\Magento\Sales\Model\Order::STATE_PENDING_PAYMENT)->setStatus(\Magento\Sales\Model\Order::STATE_PENDING_PAYMENT);
             $this->orderRepository->save($order);
         }
     }

@@ -35,8 +35,6 @@ class Postauthcallback extends GatewayAbstract implements HttpPostActionInterfac
      */
     public function execute()
     {
-        $this->_logger->write([ 'postAuthCallback' => $this->getRawBody() ]);
-
         try {
             $resultJson = $this->_resultJsonFactory->create();
             return $resultJson->setData($this->_pay360Model->postAuthCallback($this->_jsonDecoder->decode($this->getRawBody())));

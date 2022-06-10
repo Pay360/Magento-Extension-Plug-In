@@ -36,7 +36,6 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
 
     protected $_resultRedirect;
     protected $_customerSession;
-    protected $_checkoutSession;
     protected $_nvp;
     protected $_pay360Helper;
     protected $_logger;
@@ -72,7 +71,6 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \Magento\Customer\Model\Session $customerSession,
-        \Magento\Checkout\Model\Session $checkoutSession,
         \Pay360\Payments\Model\Api\Nvp $nvp,
         \Pay360\Payments\Helper\Data $pay360Helper,
         \Pay360\Payments\Helper\Logger $pay360Logger,
@@ -88,7 +86,6 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
         $this->_resultJsonFactory = $resultJsonFactory;
         $this->_resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $this->_customerSession = $customerSession;
-        $this->_checkoutSession = $checkoutSession;
         $this->_nvp = $nvp;
         $this->_pay360Helper = $pay360Helper;
         $this->_logger = $pay360Logger;
@@ -112,6 +109,16 @@ class GatewayAbstract extends \Magento\Framework\App\Action\Action
             $this->_rawBody = empty($this->_rawBody) ? '{}' : $this->_rawBody;
         }
         return $this->_rawBody;
+    }
+
+    /**
+     * retrieve last order's incrementId
+     *
+     * @return string
+     */
+    public function getOrderId()
+    {
+        return $this->_pay360Helper->getOrderId();
     }
 
     /**

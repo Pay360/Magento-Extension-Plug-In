@@ -57,6 +57,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->_priceHelper = $priceHelper;
     }
 
+    public function getOrderId()
+    {
+        return $this->_checkoutSession->getLastRealOrderId();
+    }
+
     /**
      * Check order view availability
      *

@@ -35,17 +35,16 @@ class Redirect extends GatewayAbstract implements HttpGetActionInterface, CsrfAw
      */
     public function execute()
     {
-        // check last real order id
-        $this->_logger->write($this->_checkoutSession->getLastRealOrderId());
+        $order_id = $this->getOrderId();
 
-        if ($this->_checkoutSession->getLastRealOrderId()) {
-            $response = $this->_nvp->callDoPayment();
+        if ($order_id) {
+            $response = $this->_nvp->callDoPayment($order_id);
             try {
                 $sessionData = $this->_sessionRepoistory->loadBySessionId($response['sessionId']);
                 if (is_null($sessionData)) {
                     $sessionData = $this->_sessionData;
                 }
-                $sessionData->setOrderId($this->_checkoutSession->getLastOrderId()) // last_order_id is entity_id 
+                $sessionData->setOrderId($order_id)
                             ->setSessionId($response['sessionId'])
                             ->setSessionDate(date("Y-m-d H:i:s"))
                             ->setStatus($response['status']);
@@ -68,7 +67,7 @@ class Redirect extends GatewayAbstract implements HttpGetActionInterface, CsrfAw
     public function failedPay360($msg)
     {
         $this->messageManager->addNoticeMessage($msg);
-        $this->_pay360Helper->reinitCart($this->_checkoutSession->getLastRealOrderId());
+        $this->_pay360Helper->reinitCart($this->getOrderId());
 
         return $this->_resultRedirect->setUrl('/checkout/cart/');
     }

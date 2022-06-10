@@ -52,7 +52,7 @@ class Info extends \Magento\Payment\Block\Info\Cc
         $transport = parent::_prepareSpecificInformation($transport);
         $payment = $this->getInfo();
         $data = [];
-        $merchant_ref = $payment->getOrder()->getEntityId();
+        $merchant_ref = $payment->getOrder()->getIncrementId();
         $transaction = $this->_transactionRepository->loadByMerchantRef($merchant_ref);
 
         if ($transaction && $transaction->getId()) {
@@ -62,6 +62,7 @@ class Info extends \Magento\Payment\Block\Info\Cc
             $captured_amount = (string)__('Captured Amount');
             $refunded_amount = (string)__('Refunded Amount');
             $currency = (string)__('Currency');
+            $transaction_type = (string)__('Transaction Type');
             $status = (string)__('Status');
 
             /*prepare data*/
@@ -69,7 +70,8 @@ class Info extends \Magento\Payment\Block\Info\Cc
             $refunded = $transaction->getRefundedAmount() ? $this->_helper->formatCurrency($transaction->getRefundedAmount()/100) : 0;
             $data = array(
                 $last_trans_id => $transaction->getTransactionId(),
-                $status => ucwords(str_replace('_', ' ',$transaction->getStatus())),
+                //$status => ucwords(str_replace('_', ' ',$transaction->getStatus())),
+                //$transaction_type => ucwords(str_replace('_', ' ',$transaction->getType())),
                 $amount => $this->_helper->formatCurrency($transaction->getAmount()),
                 $currency => $transaction->getCurrency()
             );
