@@ -5,11 +5,14 @@ namespace Pay360\Payments\Helper;
 use Magento\Checkout\Model\Cart as CustomerCart;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
+use Pay360\Payments\Model\Standard as PaymentModel;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
     const PAY360_DEBUG = 'payment/pay360/debug';
     const PAY360_PAYMENT_TYPE = 'payment/pay360/payment_type';
+    const PAY360_ORDER_STATUS = 'payment/pay360/order_status';
+    const PAY360_ORDER_STATUS_AUTHONLY = 'payment/pay360/order_status_auth';
 
     protected $_customerSession;
     protected $_checkoutSession;
@@ -99,6 +102,20 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * retrieve order state/status for new order per configuration. values depends on Payment Type
+     *
+     * @return string
+     */
+    public function getOrderState()
+    {
+        if ($this->scopeConfig->getValue(self::PAY360_PAYMENT_TYPE, ScopeInterface::SCOPE_STORE) == PaymentModel::AUTHONLY) {
+            return $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS_AUTHONLY, ScopeInterface::SCOPE_STORE, $order->getStoreId());
+        }
+
+        return $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS, ScopeInterface::SCOPE_STORE, $order->getStoreId());
+    }
+
+    /**
      * rebuild cart content if payment failed
      *
      * @param Integer $last_order_id
@@ -110,7 +127,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             return;
         }
         // cancel before reinit - NOTE: status update required before cancelling
-        $status = $this->scopeConfig->getValue('payment/pay360/order_status', ScopeInterface::SCOPE_STORE, $order->getStoreId());
+        $status = $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS, ScopeInterface::SCOPE_STORE, $order->getStoreId());
         $order->addStatusHistoryComment(__("Order #%1 cancelled.", $order->getIncrementId()));
         $order->setState($status)->setStatus($status)->save();
 
@@ -134,7 +151,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function reviewhpf()
     {
-        if ($this->_checkoutSession->getQuote()->getPayment()->getMethodInstance()->getCode() == \Pay360\Payments\Model\Standard::CODE
+        if ($this->_checkoutSession->getQuote()->getPayment()->getMethodInstance()->getCode() == PaymentModel::CODE
             && $this->scopeConfig->getValue(self::PAY360_PAYMENT_TYPE, ScopeInterface::SCOPE_STORE)  == \Pay360\Payments\Model\Source\Paymenttype::TYPE_HPF) {
             return 'pay360/review/info.phtml';
         } else {
