@@ -104,11 +104,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * retrieve order state/status for new order per configuration. values depends on Payment Type
      *
+     * @param Magento\Sales\Model\Order
      * @return string
      */
-    public function getOrderState()
+    public function getOrderState($order)
     {
-        if ($this->scopeConfig->getValue(self::PAY360_PAYMENT_TYPE, ScopeInterface::SCOPE_STORE) == PaymentModel::AUTHONLY) {
+        if ($this->scopeConfig->getValue(self::PAY360_PAYMENT_TYPE, ScopeInterface::SCOPE_STORE) == PaymentModel::PAYMENT_TYPE_AUTH) {
             return $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS_AUTHONLY, ScopeInterface::SCOPE_STORE, $order->getStoreId());
         }
 

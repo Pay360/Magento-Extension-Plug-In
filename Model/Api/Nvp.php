@@ -12,15 +12,46 @@ class Nvp extends AbstractApi
 
     protected $_lastOrder;
 
+    /**
+     * @param \Pay360\Payments\Model\Transaction
+     */
     protected $_transaction;
 
+    /**
+     * @param Pay360Helper
+     */
     protected $_pay360Helper;
+
+    /**
+     * @param \Magento\Directory\Model\CountryFactory
+     */
+    protected $_countryFactory;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $_storeManager;
 
+    /**
+     * Nvp constructor
+     *
+     * @param \Magento\Customer\Helper\Address $customerAddress
+     * @param \Pay360\Payments\Helper\Logger $logger
+     * @param Pay360Helper $pay360Helper
+     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
+     * @param \Magento\Directory\Model\RegionFactory $regionFactory
+     * @param \Pay360\Payments\Model\Config $config
+     * @param \Pay360\Payments\Model\Session $pay360session
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param \Magento\Directory\Model\CountryFactory $countryFactory
+     * @param \Pay360\Payments\Model\Transaction $transaction
+     * @param \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory
+     * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
+     * @param \Magento\Framework\Json\DecoderInterface $jsonDecoder
+     * @param \Magento\Framework\HTTP\Client\Curl $curlClient
+     * @param array
+     */
     public function __construct(
         \Magento\Customer\Helper\Address $customerAddress,
         \Pay360\Payments\Helper\Logger $logger,
@@ -31,6 +62,7 @@ class Nvp extends AbstractApi
         \Pay360\Payments\Model\Session $pay360session,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Sales\Api\Data\OrderInterface $order,
+        \Magento\Directory\Model\CountryFactory $countryFactory,
         \Pay360\Payments\Model\Transaction $transaction,
         \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory,
         \Magento\Framework\Json\EncoderInterface $jsonEncoder,
@@ -52,6 +84,7 @@ class Nvp extends AbstractApi
             $curlClient,
             $data
         );
+        $this->_countryFactory = $countryFactory;
         $this->_pay360Helper = $pay360Helper;
         $this->_lastOrder = $order;
         $this->_transaction = $transaction;
@@ -76,13 +109,16 @@ class Nvp extends AbstractApi
 
     public function getAddressDetails($address)
     {
+        $countryCode = $address->getCountryId();
+        $country = $this->_countryFactory->create()->loadByCode($countryCode);
+
         return array(
             'line1' => $address->getStreetLine(1),
             'line2' => $address->getStreetLine(2),
             'city' => $address->getCity(),
             'region' => $address->getRegionCode(),
             'postcode' => $address->getPostcode(),
-            'countryCode' => $address->getCountry()
+            'countryCode' => $country->getData('iso3_code')
         );
     }
 
