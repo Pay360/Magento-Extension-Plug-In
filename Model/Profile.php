@@ -85,8 +85,8 @@ class Profile extends \Magento\Framework\Model\AbstractModel
     public function initProfileByMaskedPan($masked_pan, $customer_id)
     {
         $profile = $this->getCollection()
-            ->addFieldToFilter('masked_pan', array('eq' => $masked_pan))
-            ->addFieldToFilter('customer_id', array('eq' => $customer_id))
+            ->addFieldToFilter('masked_pan', ['eq' => $masked_pan])
+            ->addFieldToFilter('customer_id', ['eq' => $customer_id])
             ->getFirstItem();
 
         $profile = $profile->getId() ? $profile : $this;
@@ -95,4 +95,3 @@ class Profile extends \Magento\Framework\Model\AbstractModel
         return $profile;
     }
 }
-

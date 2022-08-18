@@ -392,7 +392,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $response = $this->_nvp->callDoCapture($transaction, $order);
 
         $transaction = $response['transaction'];
-        $outcome = empty($response['outcome']) ? array() : $response['outcome'];
+        $outcome = empty($response['outcome']) ? [] : $response['outcome'];
         $payment->setTransactionId($transaction['transactionId']);
         if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
             return $this;
@@ -421,7 +421,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $response = $this->_nvp->callRefundTransaction($order, $amount);
 
         $transaction = $response['transaction'];
-        $outcome = empty($response['outcome']) ? array() : $response['outcome'];
+        $outcome = empty($response['outcome']) ? [] : $response['outcome'];
         $payment->setTransactionId($transaction['transactionId']);
         if ($transaction['type'] == \Pay360\Payments\Model\Config::PAYMENT_TYPE_REFUND && $transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
             return $this;
@@ -569,14 +569,12 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $transaction = $body_json['transaction'];
 
         $order = $this->_orderFactory->create()->loadByIncrementId($transaction['merchantRef']);
-        if (
-            $order->getId()
+        if ($order->getId()
             && $order->getGrandTotal() == $transaction['amount']
             && empty($transaction['deferred'])
         ) {
             $this->afterCapture($order, $transaction);
-        }
-        else {
+        } else {
             $this->_logger->write("afterCapture was not triggered because Amounts not equal or Payment deferred");
         }
     }
@@ -590,18 +588,18 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_logger->write(['pre_auth_callback' => $body_json]);
 
         $sessionId = empty($body_json['sessionId']) ? false : $body_json['sessionId'];
-        $response = array(
-            'callbackResponse' => array(
-                'preAuthCallbackResponse' => array(
+        $response = [
+            'callbackResponse' => [
+                'preAuthCallbackResponse' => [
                     'action' => \Pay360\Payments\Model\Config::RESPOND_PROCEED,
-                    'redirect' => array(
-                        'url' => $this->_urlBuilder->getUrl('pay360/gateway/paymentsuspend', array('sessionId' => $sessionId)),
+                    'redirect' => [
+                        'url' => $this->_urlBuilder->getUrl('pay360/gateway/paymentsuspend', ['sessionId' => $sessionId]),
                         'frame' => 'CONTAINER' // Possible Values: CONTAINER, TOP
-                    )
+                    ]
                     // 'return' => array() // not necessary since we allready have call back url
-                )
-            )
-        );
+                ]
+            ]
+        ];
 
         $this->_logger->write($response);
         return $response;
@@ -609,22 +607,25 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
 
     /**
      * custom logic to check after authorization
+     *
+     * @param array
+     * @return void
      */
     public function postAuthCallback($body_json)
     {
         $this->_logger->write(['post_auth_callback' => $body_json]);
 
         // Default response is cancel
-        $response = array(
-            'callbackResponse' => array(
-                'postAuthCallbackResponse' => array(
+        $response = [
+            'callbackResponse' => [
+                'postAuthCallbackResponse' => [
                     'action' => \Pay360\Payments\Model\Config::RESPOND_CANCEL, // available actions proceed, cancel
-                    'return' => array(
+                    'return' => [
                         'url' => $this->_nvp->getFailedPaymentUrl()
-                    )
-                )
-            )
-        );
+                    ]
+                ]
+            ]
+        ];
         try {
             $transaction = $body_json['transaction'];
             $model = $this->_transactionFactory->create()->load($transaction['transactionId'], 'transaction_id');
@@ -642,8 +643,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 ->save();
 
             // Create/Upate profile if transaction success - applicable for AUTHNCAPTURE
-            if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS)
-            {
+            if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
                 $this->saveProfile($body_json);
 
                 // save cc type
@@ -655,8 +655,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->_logger->logException($e);
         }
 
@@ -724,7 +723,12 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * process order, invoice after payment capture is done
+     * Process order, invoice after payment capture is done
+     *
+     * @param Magento\Sales\Model\Order
+     * @param array
+     *
+     * @return void
      */
     public function afterCapture($order, $transaction)
     {
@@ -735,9 +739,11 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_orderSender->send($order);
 
         /* verify status. make invoice and set order state to processing. add comments to Order */
+        $deferred = isset($transaction['deferred']) ? (boolean) $transaction['deferred'] : false;
+
         if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS
             // add deferred condition to make sure invoice creation and predefined order status only applicable for paid order
-            && !$transaction['deferred']) {
+            && !$deferred) {
             if (!$order->canInvoice()) {
                 $order->addStatusHistoryComment(__("Error in creating an invoice"));
             } else {
@@ -746,13 +752,18 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                     $invoice = $this->_invoiceService->prepareInvoice($order);
                     ;
                     //set transaction id for invoice
-                    $invoice->setTransactionId($transaction['transactionId']);
+                    $invoice->setData('transaction_id', $transaction['transactionId']);
                     //set invoice state to paid
                     $invoice->setState(\Magento\Sales\Model\Order\Invoice::STATE_PAID);
+                    $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
                     $invoice->register();
                     $this->_transaction->addObject($invoice)->addObject($order)->save();
+
                     /* set order status */
                     $order->addStatusHistoryComment(__("Captured amount of %1 online. Transaction ID: '%2'.", strip_tags($order->getBaseCurrency()->formatTxt($transaction['amount'])), strval($transaction['transactionId'])));
+                    $payment = $order->getPayment();
+                    $payment->setAmountPaid($invoice->getGrandTotal())->setCanRefund(1);
+                    $order->setTotalPaid($invoice->getGrandTotal())->setBaseTotalPaid($invoice->getGrandTotal());
 
                     $status = $this->getPredefinedOrderStatus($order);
                     $order->setState($status)->setStatus($status);

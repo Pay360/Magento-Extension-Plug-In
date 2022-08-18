@@ -33,7 +33,7 @@ class Index extends \Magento\Framework\View\Element\Template
         \Magento\Customer\Model\Session $customerSession,
         \Pay360\Payments\Model\ProfileFactory $profileFactory,
         \Magento\Catalog\Model\ProductFactory $productFactory,
-        array $data = array()
+        array $data = []
     ) {
         parent::__construct($context, $data);
 

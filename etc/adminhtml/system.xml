@@ -3,7 +3,9 @@
 	<system>
 		<section id="payment" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="1000" translate="label">
 			<group id="pay360" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
-				<label>Pay360 Payments</label>
+                <comment><![CDATA[<div class="pay360-payment-logo"></div><div class="pay360-payment-text">Pay360 Payments.<br/>Use Pay360 to accept a wide range of payments, from cash, card transactions and direct debits, to the latest alternative payment methods (APMs).</div>]]></comment>
+                <fieldset_css>complex pay360-section</fieldset_css>
+                <frontend_model>Pay360\Payments\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
                 <field id="version" translate="label" type="text" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
 					<label>Version</label>
                     <frontend_model>Pay360\Payments\Block\System\Config\Version</frontend_model>

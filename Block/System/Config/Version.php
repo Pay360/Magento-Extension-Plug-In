@@ -50,8 +50,7 @@ class Version extends Field
         ReadFactory $readFactory,
         ComponentRegistrarInterface $componentRegistrar,
         \Magento\Store\Model\StoreManagerInterface $storeManager
-    )
-    {
+    ) {
         $this->readFactory = $readFactory;
         $this->componentRegistrar = $componentRegistrar;
         $this->_storeManager = $storeManager;

@@ -76,4 +76,3 @@ class Session extends \Magento\Framework\Model\AbstractModel
         return $sessionDataObject;
     }
 }
-

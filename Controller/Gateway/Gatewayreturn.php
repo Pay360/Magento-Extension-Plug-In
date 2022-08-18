@@ -37,12 +37,11 @@ class Gatewayreturn extends GatewayAbstract implements HttpGetActionInterface, C
     {
         $lastOrderId = $this->getOrderId();
         $transaction = $this->_transactionRepository->loadByMerchantRef($lastOrderId);
-        if ($transaction && $transaction->getStatus() == \Pay360\Payments\Model\Transaction::STATUS_FAILED)
-        {
-            return $this->_resultRedirect->setPath('pay360/gateway/failedpayment', array('_secure'=>true));
+        if ($transaction && $transaction->getStatus() == \Pay360\Payments\Model\Transaction::STATUS_FAILED) {
+            return $this->_resultRedirect->setPath('pay360/gateway/failedpayment', ['_secure'=>true]);
         }
 
-        return $this->_resultRedirect->setPath('checkout/onepage/success', array('_secure'=>true));
+        return $this->_resultRedirect->setPath('checkout/onepage/success', ['_secure'=>true]);
     }
 
     /**

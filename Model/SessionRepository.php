@@ -143,7 +143,7 @@ class SessionRepository implements sessionRepositoryInterface
     }
 
     /**
-     * load transaction by session_id 
+     * load transaction by session_id
      * @param $session_id
      *
      * @return $this

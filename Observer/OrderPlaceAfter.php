@@ -41,7 +41,7 @@ class OrderPlaceAfter implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $order = $observer->getEvent()->getData('order');
-        if($order->getEntityType() == 'order'
+        if ($order->getEntityType() == 'order'
             && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE) {
 
             $order_state = $this->pay360Helper->getOrderState($order);

@@ -28,7 +28,7 @@ class Hpfredirect extends \Magento\Framework\View\Element\Template
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Pay360\Payments\Model\Config $config,
-        array $data = array()
+        array $data = []
     ) {
         parent::__construct($context, $data);
         $this->_config = $config;
@@ -52,11 +52,11 @@ class Hpfredirect extends \Magento\Framework\View\Element\Template
 
     public function getRedirectUrl()
     {
-        return $this->_config->getUrlBuilder()->getUrl('checkout/onepage/success', array('_secure' => true));
+        return $this->_config->getUrlBuilder()->getUrl('checkout/onepage/success', ['_secure' => true]);
     }
 
     public function getCancelRedirectUrl()
     {
-        return $this->_config->getUrlBuilder()->getUrl('checkout/cart/index', array('_secure' => true));
+        return $this->_config->getUrlBuilder()->getUrl('checkout/cart/index', ['_secure' => true]);
     }
 }

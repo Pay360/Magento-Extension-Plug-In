@@ -68,13 +68,13 @@ class Info extends \Magento\Payment\Block\Info\Cc
             /*prepare data*/
             $captured = $transaction->getCapturedAmount() ? $this->_helper->formatCurrency($transaction->getCapturedAmount()/100) : 0;
             $refunded = $transaction->getRefundedAmount() ? $this->_helper->formatCurrency($transaction->getRefundedAmount()/100) : 0;
-            $data = array(
+            $data = [
                 $last_trans_id => $transaction->getTransactionId(),
                 //$status => ucwords(str_replace('_', ' ',$transaction->getStatus())),
                 //$transaction_type => ucwords(str_replace('_', ' ',$transaction->getType())),
                 $amount => $this->_helper->formatCurrency($transaction->getAmount()),
                 $currency => $transaction->getCurrency()
-            );
+            ];
         }
 
         return $transport->addData($data);

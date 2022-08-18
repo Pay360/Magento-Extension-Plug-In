@@ -55,8 +55,7 @@ class Redirect extends GatewayAbstract implements HttpGetActionInterface, CsrfAw
                 } else {
                     return $this->failedPay360(__('Pay360 payment failed. Please contact us for support'));
                 }
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 return $this->failedPay360(__('Pay360 Payment Method is not available. Please try again or contact us for support.'));
             }
         }

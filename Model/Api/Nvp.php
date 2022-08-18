@@ -112,14 +112,14 @@ class Nvp extends AbstractApi
         $countryCode = $address->getCountryId();
         $country = $this->_countryFactory->create()->loadByCode($countryCode);
 
-        return array(
+        return [
             'line1' => $address->getStreetLine(1),
             'line2' => $address->getStreetLine(2),
             'city' => $address->getCity(),
             'region' => $address->getRegionCode(),
             'postcode' => $address->getPostcode(),
             'countryCode' => $country->getData('iso3_code')
-        );
+        ];
     }
 
     /**
@@ -133,44 +133,44 @@ class Nvp extends AbstractApi
      */
     public function callDoPayment($orderId, $returnUrl = null, $cancelUrl = null)
     {
-        $nvpArr = array(
-            'transaction' => array(
+        $nvpArr = [
+            'transaction' => [
                 'merchantReference' => $orderId,
-                'money' => array(
-                    'amount' => array(
+                'money' => [
+                    'amount' => [
                         'fixed' => $this->getOrder()->getGrandTotal()
-                    ),
+                    ],
                     'currency' => $this->getOrder()->getOrderCurrencyCode()
-                ),
+                ],
                 'description' => 'Hosted Payment Transaction',
                 'commerceType' => 'ECOM', //  Possible Values: ECOM, MOTO, CNP
                 'channel' => 'WEB', //  Possible Values: WEB, MOBILE, SMS, RETAIL, MOTO, IVR, OTHER
                 'deferred' => $this->_config->getValue('payment/pay360/payment_action') == \Pay360\Payments\Model\Standard::PAYMENT_TYPE_AUTH ? 1 : 0, // Indicates if you want the Payment to be Authorised and Captured separately. Capture immediately
-            ),
-            'customer' => array(
+            ],
+            'customer' => [
                 'registered' => false
-            ),
-            'session' => array(
-                'preAuthCallback' => array(
+            ],
+            'session' => [
+                'preAuthCallback' => [
                     'url' => $this->getPreAuthCallBackUrl(),
                     'format' => 'REST_JSON'
-                ),
-                'postAuthCallback' => array(
+                ],
+                'postAuthCallback' => [
                     'url' => $this->getPostAuthCallBackUrl(),
                     'format' => 'REST_JSON'
-                ),
-                'transactionNotification' => array(
+                ],
+                'transactionNotification' => [
                     'url' => $this->getTransactionNotificationUrl(),
                     'format' => 'REST_JSON'
-                ),
-                'returnUrl' => array(
+                ],
+                'returnUrl' => [
                     'url' => empty($returnUrl) ? $this->getReturnUrl() : $returnUrl
-                ),
-                'cancelUrl' => array(
+                ],
+                'cancelUrl' => [
                     'url' => empty($cancelUrl) ? $this->getCancelUrl() : $cancelUrl
-                )
-            )
-        );
+                ]
+            ]
+        ];
 
         // setup 3DS
         if ($this->_config->getValue('payment/pay360/3ds')) {
@@ -180,9 +180,9 @@ class Nvp extends AbstractApi
         // check if customer logged in -> create new profile
         if ($this->getOrder()->getCustomerId()) {
             $nvpArr['customer']['registered'] = true; // register customer to Pay360 by default
-            $nvpArr['customer']['identity'] = array(
+            $nvpArr['customer']['identity'] = [
                 'merchantCustomerId' => $this->getOrder()->getCustomerId()
-            );
+            ];
         }
         // customer information for both guest and logged in customer
         $nvpArr['customer']['details'] = $this->getCustomerDetails($this->getOrder());
@@ -205,14 +205,14 @@ class Nvp extends AbstractApi
     public function getCustomerDetails($order)
     {
         $billingAddress = $order->getBillingAddress();
-        return array(
+        return [
             'name' => $billingAddress->getFirstName().' '.$billingAddress->getLastName(),
             'address' => $this->getAddressDetails($billingAddress),
             'telephone' => $billingAddress->getTelephone(),
             'emailAddress' => $order->getCustomerEmail(), // is this enough for 3DS ?
             'ipAddress' => $order->getRemoteIp(),
             'defaultCurrency' => $order->getOrderCurrencyCode()
-        );
+        ];
     }
 
     public function callDoCapture($transaction, $order)
@@ -221,14 +221,14 @@ class Nvp extends AbstractApi
         $url = str_replace('{transaction_id}', $transaction->getTransactionId(), $url);
         $this->setResourceEndpoint($url);
 
-        $nvpArr = array(
-            'transaction' => array(
+        $nvpArr = [
+            'transaction' => [
                 'commerceType' => 'ECOM',
                 'channel' => 'WEB',
-                'merchantRef' => $order->getId(),
+                'merchantRef' => $order->getIncrementId(),
                 'description' => ''
-            )
-        );
+            ]
+        ];
         return $this->call($nvpArr);
     }
 
@@ -243,16 +243,16 @@ class Nvp extends AbstractApi
 
     public function callRefundTransaction($order, $amount)
     {
-        $transaction = $this->_transaction->load($order->getId(), 'merchant_ref');
-        $nvpArr = array(
-            'transaction' => array(
+        $transaction = $this->_transaction->load($order->getIncrementId(), 'merchant_ref');
+        $nvpArr = [
+            'transaction' => [
                 'amount' => $amount,
                 'currency' => $order->getOrderCurrencyCode(),
                 'merchantRef' => $transaction->getMerchantRef(),
                 'commerceType' => 'ECOM',
                 'channel' => 'WEB'
-            )
-        );
+            ]
+        ];
 
         $url = str_replace('{installation_id}', $this->_config->getValue('payment/pay360/installation_id'), Config::API_MAKE_REFUND);
         $url = str_replace('{transaction_id}', $transaction->getTransactionId(), $url);
@@ -267,7 +267,7 @@ class Nvp extends AbstractApi
      * @param $nvpArr array NVP params array
      * @return array|boolean an associtive array containing the response from the server or false in case of error.
      */
-    public function call($nvpArr = array())
+    public function call($nvpArr = [])
     {
         return $this->request($nvpArr);
     }

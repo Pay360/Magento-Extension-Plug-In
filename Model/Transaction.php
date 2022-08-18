@@ -77,4 +77,3 @@ class Transaction extends \Magento\Framework\Model\AbstractModel
         return $transactionDataObject;
     }
 }
-

@@ -12,10 +12,10 @@ use Psr\Log\LoggerInterface;
 
 class Logger extends AbstractHelper
 {
-    private $expected_error_msgs = array(
+    private $expected_error_msgs = [
         'No such entity with cartId' => 'Quote not available',
         'Decoding failed' => 'Request Body Invalid'
-    );
+    ];
     /**
      * @var LoggerInterface
      */
@@ -55,7 +55,6 @@ class Logger extends AbstractHelper
         } catch (Exception $e) {
             // do nothing
         }
-        
     }
 
     /**
@@ -71,8 +70,7 @@ class Logger extends AbstractHelper
             $original_message = $e->getMessage();
             if ($translated_message = $this->translateErrorMsg($original_message)) {
                 $this->logger->error(__('Recognized Error :'). $translated_message);
-            }
-            else {
+            } else {
                 $this->logger->error(
                     $original_message,
                     ['detail' => $e->getTraceAsString()]
@@ -96,7 +94,7 @@ class Logger extends AbstractHelper
      */
     public function translateErrorMsg($error_message)
     {
-        foreach ($this->expected_error_msgs as $msg => $meaning ){
+        foreach ($this->expected_error_msgs as $msg => $meaning) {
             if (strpos($error_message, $msg) !== false) {
                 return $meaning;
             }
@@ -121,4 +119,3 @@ class Logger extends AbstractHelper
         }
     }
 }
-
