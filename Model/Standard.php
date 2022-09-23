@@ -395,6 +395,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $outcome = empty($response['outcome']) ? [] : $response['outcome'];
         $payment->setTransactionId($transaction['transactionId']);
         if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
+            $this->afterCapture($order, $transaction);
             return $this;
         } else {
             if (!empty($outcome) && !empty($outcome['reasonMessage'])) {
@@ -734,12 +735,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         /* send confirmation email to customer */
         $this->_orderSender->send($order);
 
-        /* verify status. make invoice and set order state to processing. add comments to Order */
-        $deferred = isset($transaction['deferred']) ? (boolean) $transaction['deferred'] : false;
-
-        if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS
-            // add deferred condition to make sure invoice creation and predefined order status only applicable for paid order
-            && !$deferred) {
+        if ($transaction['status'] == \Pay360\Payments\Model\Config::PAYMENT_STATUS_SUCCESS) {
             if (!$order->canInvoice()) {
                 $order->addStatusHistoryComment(__("Error in creating an invoice"));
             } else {
