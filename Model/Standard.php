@@ -708,12 +708,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @param integer
      * @return string
      */
-    public function getPredefinedOrderStatus($order, $force_processing = false)
+    public function getPredefinedOrderStatus($order)
     {
-        if ($force_processing) {
-            return \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT;
-        }
-
         $newOrderStatus = $this->getConfigData('order_status', \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT, $order->getStoreId());
         if (empty($newOrderStatus)) {
             $newOrderStatus = $order->getStatus();

@@ -25,10 +25,13 @@ use Magento\Sales\Model\Order;
 
 class OrderStatus implements \Magento\Framework\Option\ArrayInterface
 {
+    const STATE_PENDING = 'pending';
+
     public function toOptionArray()
     {
         return [
             ['value' => Order::STATE_NEW, 'label' => __('New')],
+            ['value' => self::STATE_PENDING, 'label' => __('Pending')],
             ['value' => Order::STATE_PROCESSING, 'label' => __('Processing')],
             ['value' => Order::STATE_PENDING_PAYMENT, 'label' => __('Pending Payment')]
         ];
@@ -38,6 +41,7 @@ class OrderStatus implements \Magento\Framework\Option\ArrayInterface
     {
         return [
             Order::STATE_NEW => __('New'),
+            self::STATE_PENDING => __('Pending'),
             Order::STATE_PROCESSING => __('Processing'),
             Order::STATE_PENDING_PAYMENT => __('Pending Payment')
         ];

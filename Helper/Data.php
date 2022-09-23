@@ -11,6 +11,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
     const PAY360_DEBUG = 'payment/pay360/debug';
     const PAY360_PAYMENT_TYPE = 'payment/pay360/payment_type';
+    const PAY360_PAYMENT_ACTION = 'payment/pay360/payment_action';
     const PAY360_ORDER_STATUS = 'payment/pay360/order_status';
     const PAY360_ORDER_STATUS_AUTHONLY = 'payment/pay360/order_status_auth';
 
@@ -109,7 +110,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getOrderState($order)
     {
-        if ($this->scopeConfig->getValue(self::PAY360_PAYMENT_TYPE, ScopeInterface::SCOPE_STORE) == PaymentModel::PAYMENT_TYPE_AUTH) {
+        if ($this->scopeConfig->getValue(self::PAY360_PAYMENT_ACTION, ScopeInterface::SCOPE_STORE) == PaymentModel::PAYMENT_TYPE_AUTH) {
             return $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS_AUTHONLY, ScopeInterface::SCOPE_STORE, $order->getStoreId());
         }
 
