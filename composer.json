@@ -2,7 +2,7 @@
     "name": "pay360/module-payments",
     "description": "Magento 2 Payment module from Pay360",
     "license": "GPL-3.0",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "authors": [
         {
             "email": "nd.thanh@patchworks.co.uk",
