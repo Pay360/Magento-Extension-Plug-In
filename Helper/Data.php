@@ -103,18 +103,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * retrieve order state/status for new order per configuration. values depends on Payment Type
+     * retrieve order state/status for new order per configuration.
      *
      * @param Magento\Sales\Model\Order
      * @return string
      */
-    public function getOrderState($order)
+    public function getNewOrderState($order)
     {
-        if ($this->scopeConfig->getValue(self::PAY360_PAYMENT_ACTION, ScopeInterface::SCOPE_STORE) == PaymentModel::PAYMENT_TYPE_AUTH) {
-            return $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS_AUTHONLY, ScopeInterface::SCOPE_STORE, $order->getStoreId());
-        }
-
-        return $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS, ScopeInterface::SCOPE_STORE, $order->getStoreId());
+        return $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS_AUTHONLY, ScopeInterface::SCOPE_STORE, $order->getStoreId());
     }
 
     /**
@@ -129,7 +125,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             return;
         }
         // cancel before reinit - NOTE: status update required before cancelling
-        $status = $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS, ScopeInterface::SCOPE_STORE, $order->getStoreId());
+        $status = $this->scopeConfig->getValue(self::PAY360_ORDER_STATUS_AUTHONLY, ScopeInterface::SCOPE_STORE, $order->getStoreId());
         $order->addStatusHistoryComment(__("Order #%1 cancelled.", $order->getIncrementId()));
         $order->setState($status)->setStatus($status)->save();
 

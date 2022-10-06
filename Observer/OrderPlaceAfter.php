@@ -44,7 +44,7 @@ class OrderPlaceAfter implements ObserverInterface
         if ($order->getEntityType() == 'order'
             && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE) {
 
-            $order_state = $this->pay360Helper->getOrderState($order);
+            $order_state = $this->pay360Helper->getNewOrderState($order);
             $order->setState($order_state)->setStatus($order_state);
             $this->orderRepository->save($order);
         }
