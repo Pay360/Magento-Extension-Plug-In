@@ -58,7 +58,7 @@ class OrderSender
         \Magento\Sales\Model\Order $order,
         $forceSyncMode = false
     ) {
-        if ($this->isPay360CallbackRequest()) {
+        if ($this->isPay360CallbackRequest() && $order->getEmailSent()) {
             $this->logger->logMixed(['callback request - not sending email.']);
             $result = false;
         }
