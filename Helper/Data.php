@@ -14,6 +14,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const PAY360_PAYMENT_ACTION = 'payment/pay360/payment_action';
     const PAY360_ORDER_STATUS = 'payment/pay360/order_status';
     const PAY360_ORDER_STATUS_AUTHONLY = 'payment/pay360/order_status_auth';
+    const PAY360_SUPPRESS_NOTIFICATION = 'payment/pay360/suppress_notification';
 
     protected $_customerSession;
     protected $_checkoutSession;
@@ -165,6 +166,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function isDebugOn()
     {
         return (bool) $this->scopeConfig->getValue(self::PAY360_DEBUG, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * check suppress notfication enabled
+     *
+     * @return bool
+     */
+    public function isNotificationSurpressionOn()
+    {
+        return (bool) $this->scopeConfig->getValue(self::PAY360_SUPPRESS_NOTIFICATION, ScopeInterface::SCOPE_STORE);
     }
 
     /**

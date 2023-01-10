@@ -93,6 +93,11 @@
 				<field id="sort_order" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="190" translate="label" type="text">
 					<label>Sort Order</label>
 				</field>
+				<field id="suppress_notification" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="200" translate="label" type="select">
+					<label>Suppress Email Notification for Pay360 Callbacks</label>
+                    <comment><![CDATA[Pay360 callbacks to Magento website update order, this may cause multiple notification emails.]]></comment>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+				</field>
 			</group>
 		</section>
 	</system>

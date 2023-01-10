@@ -13,12 +13,9 @@
     <!--override quote data model-->
 
     <!--plugins-->
-    <!--<type name="Magento\Quote\Api\CartRepositoryInterface">
-        <plugin name="Pay360_Payments_Plugin_Magento_Quote_Api_CartRepositoryInterface" type="Pay360\Payments\Plugin\Magento\Quote\Api\CartRepositoryInterface" sortOrder="10" disabled="false"/>
+    <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
+        <plugin name="Pay360_Payments::Prevent_callback_notification_email" type="Pay360\Payments\Plugin\Magento\Sales\Model\Order\Email\Sender\OrderSender" sortOrder="10" disabled="false"/>
     </type>
-    <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
-        <plugin name="Pay360_Payments_Plugin_Magento_Quote_Api_PaymentMethodManagementInterface" type="Pay360\Payments\Plugin\Magento\Quote\Api\PaymentMethodManagementInterface" sortOrder="10" disabled="false"/>
-    </type>-->
 
     <!--logger-->
     <virtualType name="Pay360\Payments\Logger\Handler" type="Magento\Framework\Logger\Handler\Base">
