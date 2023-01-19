@@ -14,7 +14,7 @@
 
     <!--plugins-->
     <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
-        <plugin name="Pay360_Payments::Prevent_callback_notification_email" type="Pay360\Payments\Plugin\Magento\Sales\Model\Order\Email\Sender\OrderSender" sortOrder="10" disabled="false"/>
+        <plugin name="Pay360_Payments::callback_notification_email" type="Pay360\Payments\Plugin\Magento\Sales\Model\Order\Email\Sender\OrderSender" sortOrder="10" disabled="false"/>
     </type>
 
     <!--logger-->
