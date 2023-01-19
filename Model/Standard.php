@@ -655,6 +655,19 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
 
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
                 unset($response['callbackResponse']['postAuthCallbackResponse']['return']);
+
+                // when there is no transaction notification callback
+                if ((bool)$this->_scopeConfig->getValue('payment/pay360/no_notification_callback', ScopeInterface::SCOPE_STORE)) {
+                    if ($order->getId()
+                        && $order->getGrandTotal() == $transaction['amount']
+                        && empty($transaction['deferred'])
+                    ) {
+                        $this->_logger->write("afterCapture in postAuthCallback");
+                        $this->afterCapture($order, $transaction);
+                    } else {
+                        $this->_logger->write("afterCapture was not triggered because Amounts not equal or Payment deferred");
+                    }
+                }
             }
         } catch (\Exception $e) {
             $this->_logger->logException($e);

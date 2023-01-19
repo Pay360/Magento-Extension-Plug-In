@@ -15,6 +15,7 @@
                 <payment_action>AUTHORIZATION</payment_action>
 				<title>Pay360</title>
 				<allowspecific>0</allowspecific>
+				<no_notification_callback>1</no_notification_callback>
 			</pay360>
 		</payment>
 	</default>
