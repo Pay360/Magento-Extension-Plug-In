@@ -59,21 +59,22 @@ class OrderSender
         $forceSyncMode = false
     ) {
         $this->logger->write($order->getPayment()->getMethod());
-        if ($order->getPayment() && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE) {
-            $this->logger->write("pay360 order");
-            // handle pay360 orders
-            $result = false;
-            if ($this->isPay360CallbackRequest()
-                && !$order->getEmailSent()) {
-                $this->logger->write("pay360 send email once");
+        $result = false;
+
+        if ($this->helper->isNotificationSurpressionOn()
+            && $order->getPayment()
+            && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE) {
+
+            $this->logger->write("Pay360 Mailer Logic");
+            if ($this->isPay360CallbackRequest() && !$order->getEmailSent()) {
+                $this->logger->write("Sending Order Notification Email..");
                 $result = $proceed($order, $forceSyncMode);
             }
         }
         else {
-            $this->logger->write("default M2 email");
+            $this->logger->write("Default Magento Mailer Logic");
             $result = $proceed($order, $forceSyncMode);
         }
-        $this->logger->write("aroundSend end");
 
         return $result;
     }
@@ -85,8 +86,7 @@ class OrderSender
      */
     public function isPay360CallbackRequest()
     {
-        return $this->helper->isNotificationSurpressionOn()
-            && $this->request->getModuleName() == self::MODULE_NAME
+        return $this->request->getModuleName() == self::MODULE_NAME
             && $this->request->getControllerName() == self::CONTROLLER_NAME
             && $this->request->getActionName() == self::ACTION_NAME;
     }
