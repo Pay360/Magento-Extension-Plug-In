@@ -12,9 +12,6 @@ use Pay360\Payments\Helper\Logger as Pay360Logger;
 
 class OrderSender
 {
-    CONST MODULE_NAME='pay360';
-    CONST CONTROLLER_NAME='gateway';
-    CONST ACTION_NAME='postauthcallback';
     /**
      * @var Magento\Framework\App\Request\Http
      */
@@ -59,35 +56,28 @@ class OrderSender
         $forceSyncMode = false
     ) {
         $this->logger->write($order->getPayment()->getMethod());
-        if ($order->getPayment() && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE) {
-            $this->logger->write("pay360 order");
-            // handle pay360 orders
-            $result = false;
-            if ($this->isPay360CallbackRequest()
-                && !$order->getEmailSent()) {
-                $this->logger->write("pay360 send email once");
-                $result = $proceed($order, $forceSyncMode);
+        $result = false;
+
+        if ($this->helper->isNotificationSurpressionOn()) {
+            $this->logger->write("Pay360 Mailer Logic");
+            // only send email when there is payment details
+            if ($order->getPayment()
+                && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE
+                && $order->getPayment()->getCcType()) {
+
+                // email sender defined here Pay360\Payments\Model\Standard::afterCapture L736,L776
+                // afterCapture triggered by either capture() or transactionNotificationCallback()
+                if (!$order->getEmailSent()) {
+                    $this->logger->write("Sending Order Notification Email..");
+                    $result = $proceed($order, $forceSyncMode);
+                }
             }
         }
         else {
-            $this->logger->write("default M2 email");
+            $this->logger->write("Default Magento Mailer Logic");
             $result = $proceed($order, $forceSyncMode);
         }
-        $this->logger->write("aroundSend end");
 
         return $result;
-    }
-
-    /**
-     * check if request url is pay360 callback or not
-     *
-     * @return boolean
-     */
-    public function isPay360CallbackRequest()
-    {
-        return $this->helper->isNotificationSurpressionOn()
-            && $this->request->getModuleName() == self::MODULE_NAME
-            && $this->request->getControllerName() == self::CONTROLLER_NAME
-            && $this->request->getActionName() == self::ACTION_NAME;
     }
 }
