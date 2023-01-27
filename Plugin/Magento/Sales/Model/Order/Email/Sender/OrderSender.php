@@ -12,9 +12,6 @@ use Pay360\Payments\Helper\Logger as Pay360Logger;
 
 class OrderSender
 {
-    CONST MODULE_NAME='pay360';
-    CONST CONTROLLER_NAME='gateway';
-    CONST ACTION_NAME='postauthcallback';
     /**
      * @var Magento\Framework\App\Request\Http
      */
@@ -61,14 +58,19 @@ class OrderSender
         $this->logger->write($order->getPayment()->getMethod());
         $result = false;
 
-        if ($this->helper->isNotificationSurpressionOn()
-            && $order->getPayment()
-            && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE) {
-
+        if ($this->helper->isNotificationSurpressionOn()) {
             $this->logger->write("Pay360 Mailer Logic");
-            if ($this->isPay360CallbackRequest() && !$order->getEmailSent()) {
-                $this->logger->write("Sending Order Notification Email..");
-                $result = $proceed($order, $forceSyncMode);
+            // only send email when there is payment details
+            if ($order->getPayment()
+                && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE
+                && $order->getPayment()->getCcType()) {
+
+                // email sender defined here Pay360\Payments\Model\Standard::afterCapture L736,L776
+                // afterCapture triggered by either capture() or transactionNotificationCallback()
+                if (!$order->getEmailSent()) {
+                    $this->logger->write("Sending Order Notification Email..");
+                    $result = $proceed($order, $forceSyncMode);
+                }
             }
         }
         else {
@@ -77,17 +79,5 @@ class OrderSender
         }
 
         return $result;
-    }
-
-    /**
-     * check if request url is pay360 callback or not
-     *
-     * @return boolean
-     */
-    public function isPay360CallbackRequest()
-    {
-        return $this->request->getModuleName() == self::MODULE_NAME
-            && $this->request->getControllerName() == self::CONTROLLER_NAME
-            && $this->request->getActionName() == self::ACTION_NAME;
     }
 }
