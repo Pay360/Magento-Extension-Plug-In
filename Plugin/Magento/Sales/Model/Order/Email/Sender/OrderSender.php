@@ -55,29 +55,24 @@ class OrderSender
         \Magento\Sales\Model\Order $order,
         $forceSyncMode = false
     ) {
-        $this->logger->write($order->getPayment()->getMethod());
-        $result = false;
+        // only send email when there is payment details and it's pay360.
+        if ($order->getPayment()
+            && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE
+            && $order->getPayment()->getCcType()) {
 
-        if ($this->helper->isNotificationSurpressionOn()) {
-            $this->logger->write("Pay360 Mailer Logic");
-            // only send email when there is payment details
-            if ($order->getPayment()
-                && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE
-                && $order->getPayment()->getCcType()) {
+            if ($this->helper->isNotificationSurpressionOn()) {
+                $this->logger->write("Pay360 Mailer Surpression Logic");
 
                 // email sender defined here Pay360\Payments\Model\Standard::afterCapture L736,L776
                 // afterCapture triggered by either capture() or transactionNotificationCallback()
                 if (!$order->getEmailSent()) {
-                    $this->logger->write("Sending Order Notification Email..");
-                    $result = $proceed($order, $forceSyncMode);
+                    $this->logger->write("Sending Order Notification Email.");
+                    return $proceed($order, $forceSyncMode);
                 }
             }
         }
-        else {
-            $this->logger->write("Default Magento Mailer Logic");
-            $result = $proceed($order, $forceSyncMode);
-        }
 
-        return $result;
+        $this->logger->write("Default Magento Mailer Logic.");
+        return $proceed($order, $forceSyncMode);
     }
 }
