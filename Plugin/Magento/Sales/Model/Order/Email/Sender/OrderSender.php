@@ -69,6 +69,8 @@ class OrderSender
                     $this->logger->write("Sending Order Notification Email.");
                     return $proceed($order, $forceSyncMode);
                 }
+
+                return false;
             }
         }
 
