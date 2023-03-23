@@ -57,15 +57,14 @@ class OrderSender
     ) {
         // only send email when there is payment details and it's pay360.
         if ($order->getPayment()
-            && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE
-            && $order->getPayment()->getCcType()) {
+            && $order->getPayment()->getMethod() == \Pay360\Payments\Model\Standard::CODE) {
 
             if ($this->helper->isNotificationSurpressionOn()) {
                 $this->logger->write("Pay360 Mailer Surpression Logic");
 
                 // email sender defined here Pay360\Payments\Model\Standard::afterCapture L736,L776
                 // afterCapture triggered by either capture() or transactionNotificationCallback()
-                if (!$order->getEmailSent()) {
+                if (!$order->getEmailSent() && $order->getPayment()->getCcType()) {
                     $this->logger->write("Sending Order Notification Email.");
                     return $proceed($order, $forceSyncMode);
                 }
