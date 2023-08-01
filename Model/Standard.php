@@ -650,7 +650,14 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 // save cc type
                 $order = $this->_orderFactory->create()->loadByIncrementId($transaction['merchantRef']);
                 $payment = $order->getPayment();
-                $card = $body_json['paymentMethod']['card'];
+
+                if (array_key_exists('card', $body_json['paymentMethod'])) {
+                    $card = $body_json['paymentMethod']['card'];
+                }
+                else {
+                    $card = $body_json['paymentMethod']['applepay'];
+                }
+
                 $payment->setCcType($card['cardType'])->save();
 
                 $response['callbackResponse']['postAuthCallbackResponse']['action'] = \Pay360\Payments\Model\Config::RESPOND_PROCEED;
