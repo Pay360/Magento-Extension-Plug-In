@@ -1,4 +1,4 @@
-# Pay360 by Capita Payment integration for Magento
+# Pay360 Payment integration for Magento
 
 This module provides integration between Magento 2 / Adobe Commerce and Pay360.
 
