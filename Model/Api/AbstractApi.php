@@ -165,6 +165,17 @@ abstract class AbstractApi extends \Magento\Framework\DataObject
         return $this->getData($key);
     }
 
+    /**
+     * retrieve configured commerce type for API requests
+     * expected values : MOTO, ECOM, CNP
+     *
+     * @return string
+     */
+    public function getCommerceType()
+    {
+        return $this->_config->getValue('payment/pay360/commerce_type');
+    }
+
     public function getUseSession()
     {
         if (!$this->hasData('use_session')) {

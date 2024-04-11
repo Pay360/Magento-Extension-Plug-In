@@ -69,6 +69,8 @@ class Config
      * @var \Magento\Framework\UrlInterface
      */
     protected $_urlBuilder;
+    protected $_context;
+    protected $_storeId;
 
     /**
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig

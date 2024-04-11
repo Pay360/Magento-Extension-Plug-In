@@ -143,7 +143,7 @@ class Nvp extends AbstractApi
                     'currency' => $this->getOrder()->getOrderCurrencyCode()
                 ],
                 'description' => 'Hosted Payment Transaction',
-                'commerceType' => 'ECOM', //  Possible Values: ECOM, MOTO, CNP
+                'commerceType' => $this->getCommerceType(), //  Possible Values: ECOM, MOTO, CNP
                 'channel' => 'WEB', //  Possible Values: WEB, MOBILE, SMS, RETAIL, MOTO, IVR, OTHER
                 'deferred' => $this->_config->getValue('payment/pay360/payment_action') == \Pay360\Payments\Model\Standard::PAYMENT_TYPE_AUTH ? 1 : 0, // Indicates if you want the Payment to be Authorised and Captured separately. Capture immediately
             ],
@@ -223,7 +223,7 @@ class Nvp extends AbstractApi
 
         $nvpArr = [
             'transaction' => [
-                'commerceType' => 'ECOM',
+                'commerceType' => $this->getCommerceType(),
                 'channel' => 'WEB',
                 'merchantRef' => $order->getIncrementId(),
                 'description' => ''
@@ -249,7 +249,7 @@ class Nvp extends AbstractApi
                 'amount' => $amount,
                 'currency' => $order->getOrderCurrencyCode(),
                 'merchantRef' => $transaction->getMerchantRef(),
-                'commerceType' => 'ECOM',
+                'commerceType' => $this->getCommerceType(),
                 'channel' => 'WEB'
             ]
         ];
